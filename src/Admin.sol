@@ -26,7 +26,7 @@ contract OmniAdmin is XApp {
         userChainIdStakes[user][xmsg.sourceChainId] += amount;
     }
 
-    function removeStake(address user, uint256 amount) external payable xrecv {
+    function removeStake(address user, uint256 amount) external xrecv {
         require(isXCall(), "OmniAdmin: only xcall");
         require(isExistingChainId(xmsg.sourceChainId), "OmniAdmin: chain not found");
         require(xmsg.sender == chainIdContracts[xmsg.sourceChainId], "OmniAdmin: invalid sender");

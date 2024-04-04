@@ -95,14 +95,14 @@ contract SimpleStakeTest is Test {
 
     function testXUnstake() public {
         uint256 unstakeAmount = 1 ether;
-        address user = address(this); // Mock user address for testing
+        address user = address(0xf00); // Mock user address for testing
 
         // Simulate admin contract calling xunstake
         vm.deal(address(simpleStake), unstakeAmount);
         vm.prank(adminContractAddress);
-        portal.mockXCall(1, address(simpleStake), abi.encodeWithSignature("xunstake(uint256,address)", unstakeAmount, user));
-        
+        portal.mockXCall(1, address(simpleStake), abi.encodeWithSelector(simpleStake.xunstake.selector, user, unstakeAmount));
+
         // Check that the user received the unstake amount
-        assertEq(address(this).balance, unstakeAmount, "User did not receive the unstake amount.");
+        assertEq(address(user).balance, unstakeAmount, "User did not receive the unstake amount.");
     }
 }
