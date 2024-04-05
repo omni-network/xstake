@@ -3,7 +3,7 @@ pragma solidity ^0.8.25;
 
 import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 
-contract OmniAdmin is XApp {
+contract GlobalManager is XApp {
     address public owner;
     uint64[] public chainIds;
     mapping(uint64 => address) public chainIdContracts;
@@ -14,26 +14,26 @@ contract OmniAdmin is XApp {
     }
 
     function addChainContract(uint64 chainId, address contractAddress) external {
-        require(msg.sender == owner, "OmniAdmin: only owner");
+        require(msg.sender == owner, "GlobalManager: only owner");
         addChainId(chainId);
         chainIdContracts[chainId] = contractAddress;
     }
 
     function addStake(address user, uint256 amount) external xrecv {
-        require(isXCall(), "OmniAdmin: only xcall");
-        require(isExistingChainId(xmsg.sourceChainId), "OmniAdmin: chain not found");
-        require(xmsg.sender == chainIdContracts[xmsg.sourceChainId], "OmniAdmin: invalid sender");
+        require(isXCall(), "GlobalManager: only xcall");
+        require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
+        require(xmsg.sender == chainIdContracts[xmsg.sourceChainId], "GlobalManager: invalid sender");
         userChainIdStakes[user][xmsg.sourceChainId] += amount;
     }
 
     function removeStake(address user, uint256 amount) external xrecv {
-        require(isXCall(), "OmniAdmin: only xcall");
-        require(isExistingChainId(xmsg.sourceChainId), "OmniAdmin: chain not found");
-        require(xmsg.sender == chainIdContracts[xmsg.sourceChainId], "OmniAdmin: invalid sender");
-        require(userChainIdStakes[user][xmsg.sourceChainId] >= amount, "OmniAdmin: insufficient stake");
+        require(isXCall(), "GlobalManager: only xcall");
+        require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
+        require(xmsg.sender == chainIdContracts[xmsg.sourceChainId], "GlobalManager: invalid sender");
+        require(userChainIdStakes[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
         bytes memory data = abi.encodeWithSignature("xunstake(address,uint256)", user, amount);
         uint256 fee = feeFor(xmsg.sourceChainId, data);
-        require(address(this).balance >= fee, "OmniAdmin: insufficient fee");
+        require(address(this).balance >= fee, "GlobalManager: insufficient fee");
         userChainIdStakes[user][xmsg.sourceChainId] -= amount;
         xcall(xmsg.sourceChainId, xmsg.sender, data);
     }

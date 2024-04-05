@@ -3,23 +3,23 @@ pragma solidity ^0.8.25;
 
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
 import {Test,console} from "../lib/forge-std/src/Test.sol";
-import {OmniAdmin} from "../src/Admin.sol";
+import {GlobalManager} from "../src/GlobalManager.sol";
 
-contract AdminTest is Test {
-    OmniAdmin admin;
+contract GlobalTest is Test {
+    GlobalManager globalManager;
     MockPortal portal;
 
     function setUp() public {
         portal = new MockPortal();
-        admin = new OmniAdmin(address(portal));
+        globalManager = new GlobalManager(address(portal));
     }
 
     function testAddChainContract() public {
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        admin.addChainContract(chainId, contractAddress);
-        assertEq(admin.chainIds(0), chainId);
-        assertEq(admin.chainIdContracts(chainId), contractAddress);
+        globalManager.addChainContract(chainId, contractAddress);
+        assertEq(globalManager.chainIds(0), chainId);
+        assertEq(globalManager.chainIdContracts(chainId), contractAddress);
     }
 
     function testAddStakeNotListed() public {
@@ -27,8 +27,8 @@ contract AdminTest is Test {
         address user = address(0x123);
         uint64 chainId = portal.chainId();
         vm.deal(user, 1000);
-        vm.expectRevert("OmniAdmin: chain not found");
-        portal.mockXCall(chainId, address(admin), abi.encodeWithSelector(admin.addStake.selector, user, amount));
+        vm.expectRevert("GlobalManager: chain not found");
+        portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
     }
 
     function testAddStakeInvalidSender() public {
@@ -36,10 +36,10 @@ contract AdminTest is Test {
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        admin.addChainContract(chainId, contractAddress);
-        vm.expectRevert("OmniAdmin: invalid sender");
-        portal.mockXCall(chainId, address(admin), abi.encodeWithSelector(admin.addStake.selector, user, amount));
-        assertEq(admin.userChainIdStakes(user, chainId), 0);
+        globalManager.addChainContract(chainId, contractAddress);
+        vm.expectRevert("GlobalManager: invalid sender");
+        portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
+        assertEq(globalManager.userChainIdStakes(user, chainId), 0);
     }
 
     function testAddStake() public {
@@ -47,10 +47,10 @@ contract AdminTest is Test {
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        admin.addChainContract(chainId, contractAddress);
+        globalManager.addChainContract(chainId, contractAddress);
         vm.prank(contractAddress);
-        portal.mockXCall(chainId, address(admin), abi.encodeWithSelector(admin.addStake.selector, user, amount));
-        assertEq(admin.userChainIdStakes(user, chainId), amount);
+        portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
+        assertEq(globalManager.userChainIdStakes(user, chainId), amount);
     }
 
     function testRemoveStake() public {
@@ -59,11 +59,11 @@ contract AdminTest is Test {
         uint64 chainId = 1;
         address contractAddress = address(0x123);
         vm.deal(contractAddress, 1 ether);
-        admin.addChainContract(chainId, contractAddress);
+        globalManager.addChainContract(chainId, contractAddress);
         vm.prank(contractAddress);
-        portal.mockXCall(chainId, address(admin), abi.encodeWithSelector(admin.addStake.selector, user, amount));
-        assertEq(admin.userChainIdStakes(user, chainId), amount);
-        vm.deal(address(admin), 1 ether);
+        portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
+        assertEq(globalManager.userChainIdStakes(user, chainId), amount);
+        vm.deal(address(globalManager), 1 ether);
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
@@ -90,7 +90,7 @@ contract AdminTest is Test {
             )
         );
         vm.prank(contractAddress);
-        portal.mockXCall(chainId, address(admin), abi.encodeWithSelector(admin.removeStake.selector, user, amount));
-        assertEq(admin.userChainIdStakes(user, chainId), 0);
+        portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount));
+        assertEq(globalManager.userChainIdStakes(user, chainId), 0);
     }
 }

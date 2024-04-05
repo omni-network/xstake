@@ -3,25 +3,25 @@ pragma solidity ^0.8.25;
 
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
-import {SimpleStake} from "../src/SimpleStake.sol";
-import {OmniAdmin} from "../src/Admin.sol";
+import {LocalStake} from "../src/LocalStake.sol";
+import {GlobalManager} from "../src/GlobalManager.sol";
 
 contract SimpleStakeTest is Test {
-    SimpleStake simpleStake;
+    LocalStake localStake;
     MockPortal portal;
-    OmniAdmin admin;
-    address adminContractAddress;
+    GlobalManager globalManager;
+    address globalManagerAddress;
 
     function setUp() public {
         portal = new MockPortal();
-        admin = new OmniAdmin(address(portal));
-        adminContractAddress = address(admin);
-        simpleStake = new SimpleStake(address(portal), adminContractAddress);
+        globalManager = new GlobalManager(address(portal));
+        globalManagerAddress = address(globalManager);
+        localStake = new LocalStake(address(portal), globalManagerAddress);
     }
 
     function testStake() public {
         uint256 stakeAmount = 1 ether;
-        uint256 initialBalance = address(simpleStake).balance;
+        uint256 initialBalance = address(localStake).balance;
 
         // calculate fee for the xcall in the stake function
         uint256 fee = portal.feeFor(1, abi.encodeWithSignature("addStake(address,uint256)", address(this), stakeAmount));
@@ -45,7 +45,7 @@ contract SimpleStakeTest is Test {
             abi.encodeWithSignature(
                 "xcall(uint64,address,bytes)",
                 1,
-                adminContractAddress,
+                globalManagerAddress,
                 abi.encodeWithSignature(
                     "addStake(address,uint256)", 
                     address(this), 
@@ -54,10 +54,10 @@ contract SimpleStakeTest is Test {
             )
         );
         vm.prank(address(this));
-        simpleStake.stake{value: stakeAmount}();
+        localStake.stake{value: stakeAmount}();
 
         // Check balance of the contract has increased by the stake amount
-        assertEq(address(simpleStake).balance, initialBalance + stakeAmount - fee, "Stake amount was not correctly received by the SimpleStake contract.");
+        assertEq(address(localStake).balance, initialBalance + stakeAmount - fee, "Stake amount was not correctly received by the SimpleStake contract.");
     }
 
     function testInsufficientStake() public {
@@ -65,9 +65,9 @@ contract SimpleStakeTest is Test {
 
         // Simulate sending ETH to the stake function
         vm.deal(address(this), stakeAmount);
-        vm.expectRevert("SimpleStake: insufficient value for fee");
+        vm.expectRevert("LocalStake: insufficient value for xcall fee");
         vm.prank(address(this));
-        simpleStake.stake{value: stakeAmount}();
+        localStake.stake{value: stakeAmount}();
     }
 
     function testUnstake() public {
@@ -75,13 +75,13 @@ contract SimpleStakeTest is Test {
         uint256 unstakeAmount = 0.5 ether;
 
         // Simulate unstake
-        vm.deal(address(simpleStake), stakeAmount);
+        vm.deal(address(localStake), stakeAmount);
         vm.expectCall(
             address(portal), 
             abi.encodeWithSignature(
                 "xcall(uint64,address,bytes)",
                 1,
-                adminContractAddress,
+                globalManagerAddress,
                 abi.encodeWithSignature(
                     "removeStake(uint256,address)", 
                     unstakeAmount, 
@@ -90,7 +90,7 @@ contract SimpleStakeTest is Test {
             )
         );
         vm.prank(address(this));
-        simpleStake.unstake(unstakeAmount);
+        localStake.unstake(unstakeAmount);
     }
 
     function testXUnstake() public {
@@ -98,9 +98,9 @@ contract SimpleStakeTest is Test {
         address user = address(0xf00); // Mock user address for testing
 
         // Simulate admin contract calling xunstake
-        vm.deal(address(simpleStake), unstakeAmount);
-        vm.prank(adminContractAddress);
-        portal.mockXCall(1, address(simpleStake), abi.encodeWithSelector(simpleStake.xunstake.selector, user, unstakeAmount));
+        vm.deal(address(localStake), unstakeAmount);
+        vm.prank(globalManagerAddress);
+        portal.mockXCall(1, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, unstakeAmount));
 
         // Check that the user received the unstake amount
         assertEq(address(user).balance, unstakeAmount, "User did not receive the unstake amount.");

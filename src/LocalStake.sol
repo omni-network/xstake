@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 
-contract SimpleStake is XApp {
+contract LocalStake is XApp {
     uint64 public adminChainId = 1;
     address public adminContract;
 
@@ -12,12 +12,12 @@ contract SimpleStake is XApp {
     }
 
     function stake() external payable {
-        require(msg.value > 0, "SimpleStake: attach value for xcall fee");
+        require(msg.value > 0, "LocalStake: attach value for xcall fee");
         address user = msg.sender;
         uint256 amountStakeSent = msg.value;
         uint256 portalFee = feeFor(adminChainId, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent));
         uint256 totalPortalFee = portalFee + portalFee; // two xcalls: one in this chain and one in the global chain
-        require(msg.value > totalPortalFee, "SimpleStake: insufficient value for xcall fee");
+        require(msg.value > totalPortalFee, "LocalStake: insufficient value for xcall fee");
         xcall(adminChainId, adminContract, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent - totalPortalFee));
     }
 
@@ -27,9 +27,9 @@ contract SimpleStake is XApp {
     }
 
     function xunstake(address user, uint256 amount) external xrecv {
-        require(isXCall(), "SimpleStake: only xcall");
-        require(xmsg.sourceChainId == adminChainId, "SimpleStake: invalid source chain");
-        require(xmsg.sender == adminContract, "SimpleStake: invalid sender");
+        require(isXCall(), "LocalStake: only xcall");
+        require(xmsg.sourceChainId == adminChainId, "LocalStake: invalid source chain");
+        require(xmsg.sender == adminContract, "LocalStake: invalid sender");
         payable(user).transfer(amount);
     }
 }
