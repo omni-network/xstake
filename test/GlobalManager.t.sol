@@ -18,7 +18,7 @@ contract GlobalTest is Test {
         uint64 chainId = 1;
         address contractAddress = address(0x123);
         globalManager.addChainContract(chainId, contractAddress);
-        assertEq(globalManager.chainIdContracts(chainId), contractAddress);
+        assertEq(globalManager.chainIdToContract(chainId), contractAddress);
     }
 
     function testAddStakeNotListed() public {
@@ -38,7 +38,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);
         vm.expectRevert("GlobalManager: invalid sender");
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userChainIdStakes(user, chainId), 0);
+        assertEq(globalManager.userToChainIdToStake(user, chainId), 0);
     }
 
     function testAddStake() public {
@@ -49,7 +49,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);
         vm.prank(contractAddress);
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userChainIdStakes(user, chainId), amount);
+        assertEq(globalManager.userToChainIdToStake(user, chainId), amount);
     }
 
     function testRemoveStake() public {
@@ -61,7 +61,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);
         vm.prank(contractAddress);
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userChainIdStakes(user, chainId), amount);
+        assertEq(globalManager.userToChainIdToStake(user, chainId), amount);
         vm.deal(address(globalManager), 1 ether);
         vm.expectCall(
             address(portal),
@@ -90,6 +90,6 @@ contract GlobalTest is Test {
         );
         vm.prank(contractAddress);
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount));
-        assertEq(globalManager.userChainIdStakes(user, chainId), 0);
+        assertEq(globalManager.userToChainIdToStake(user, chainId), 0);
     }
 }
