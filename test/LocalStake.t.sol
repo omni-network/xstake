@@ -11,6 +11,7 @@ contract SimpleStakeTest is Test {
     MockPortal portal;
     GlobalManager globalManager;
     address globalManagerAddress;
+    uint64 globalChainId = 165;
 
     function setUp() public {
         portal = new MockPortal();
@@ -32,7 +33,7 @@ contract SimpleStakeTest is Test {
             address(portal), 
             abi.encodeWithSignature(
                 "feeFor(uint64,bytes)",
-                1,
+                globalChainId,
                 abi.encodeWithSignature(
                     "addStake(address,uint256)", 
                     address(this), 
@@ -44,7 +45,7 @@ contract SimpleStakeTest is Test {
             address(portal), 
             abi.encodeWithSignature(
                 "xcall(uint64,address,bytes)",
-                1,
+                globalChainId,
                 globalManagerAddress,
                 abi.encodeWithSignature(
                     "addStake(address,uint256)", 
@@ -80,7 +81,7 @@ contract SimpleStakeTest is Test {
             address(portal), 
             abi.encodeWithSignature(
                 "xcall(uint64,address,bytes)",
-                1,
+                globalChainId,
                 globalManagerAddress,
                 abi.encodeWithSignature(
                     "removeStake(uint256,address)", 
@@ -100,7 +101,7 @@ contract SimpleStakeTest is Test {
         // Simulate admin contract calling xunstake
         vm.deal(address(localStake), unstakeAmount);
         vm.prank(globalManagerAddress);
-        portal.mockXCall(1, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, unstakeAmount));
+        portal.mockXCall(globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, unstakeAmount));
 
         // Check that the user received the unstake amount
         assertEq(address(user).balance, unstakeAmount, "User did not receive the unstake amount.");
