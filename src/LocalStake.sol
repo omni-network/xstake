@@ -6,11 +6,16 @@ import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 /// @title LocalStake Contract
 /// @notice A contract for staking tokens locally on a rollup chain
 contract LocalStake is XApp {
-    uint64 public globalChainId = 165; // testnet Omni Network chain id
+    uint64 public globalChainId;
     address public globalManagerContract;
 
-    constructor(address portal, address _globalManagerContract) XApp(portal) {
+    constructor(
+        address portal, 
+        address _globalManagerContract,
+        uint64 _globalChainId // Chain ID for Omni Network (testnet: 165)
+    ) XApp(portal) {
         globalManagerContract = _globalManagerContract;
+        globalChainId = _globalChainId;
     }
 
     /// @notice Stake tokens

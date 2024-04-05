@@ -11,13 +11,13 @@ contract SimpleStakeTest is Test {
     MockPortal portal;
     GlobalManager globalManager;
     address globalManagerAddress;
-    uint64 globalChainId = 165;
+    uint64 globalChainId = 165; // Testnet Omni EVM chain ID
 
     function setUp() public {
         portal = new MockPortal();
         globalManager = new GlobalManager(address(portal));
         globalManagerAddress = address(globalManager);
-        localStake = new LocalStake(address(portal), globalManagerAddress);
+        localStake = new LocalStake(address(portal), globalManagerAddress, globalChainId);
     }
 
     function testStake() public {
