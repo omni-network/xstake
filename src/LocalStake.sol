@@ -17,12 +17,10 @@ contract LocalStake is XApp {
     /// @dev Requires the sender to attach a value for the xcall fee
     function stake() external payable {
         require(msg.value > 0, "LocalStake: attach value for xcall fee");
-        address user = msg.sender;
-        uint256 amountStakeSent = msg.value;
-        uint256 portalFee = feeFor(globalChainId, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent));
+        uint256 portalFee = feeFor(globalChainId, abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  msg.value));
         uint256 totalPortalFee = portalFee + portalFee; // two xcalls: one in this chain and one in the global chain
         require(msg.value > totalPortalFee, "LocalStake: insufficient value for xcall fee");
-        xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent - totalPortalFee));
+        xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  msg.value - totalPortalFee));
     }
 
     /// @notice Unstake tokens
