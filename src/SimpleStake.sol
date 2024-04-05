@@ -12,14 +12,18 @@ contract SimpleStake is XApp {
     }
 
     function stake() external payable {
-        require(msg.value > 0, "SimpleStake: attach value");
-        uint256 fee = feeFor(adminChainId, abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  msg.value));
-        require(msg.value > fee, "SimpleStake: insufficient value for fee");
-        xcall(adminChainId, adminContract, abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  msg.value - fee - fee));
+        require(msg.value > 0, "SimpleStake: attach value for xcall fee");
+        address user = msg.sender;
+        uint256 amountStakeSent = msg.value;
+        uint256 portalFee = feeFor(adminChainId, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent));
+        uint256 totalPortalFee = portalFee + portalFee; // two xcalls: one in this chain and one in the global chain
+        require(msg.value > totalPortalFee, "SimpleStake: insufficient value for xcall fee");
+        xcall(adminChainId, adminContract, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent - totalPortalFee));
     }
 
     function unstake(uint256 amount) external {
-        xcall(adminChainId, adminContract, abi.encodeWithSignature("removeStake(uint256,address)", amount, msg.sender));
+        address user = msg.sender;
+        xcall(adminChainId, adminContract, abi.encodeWithSignature("removeStake(uint256,address)", amount, user));
     }
 
     function xunstake(address user, uint256 amount) external xrecv {
