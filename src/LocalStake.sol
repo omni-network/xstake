@@ -3,6 +3,8 @@ pragma solidity ^0.8.23;
 
 import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 
+/// @title LocalStake Contract
+/// @notice A contract for staking tokens locally on a rollup chain
 contract LocalStake is XApp {
     uint64 public globalChainId = 165; // testnet Omni Network chain id
     address public globalManagerContract;
@@ -11,6 +13,8 @@ contract LocalStake is XApp {
         globalManagerContract = _globalManagerContract;
     }
 
+    /// @notice Stake tokens
+    /// @dev Requires the sender to attach a value for the xcall fee
     function stake() external payable {
         require(msg.value > 0, "LocalStake: attach value for xcall fee");
         address user = msg.sender;
@@ -21,11 +25,16 @@ contract LocalStake is XApp {
         xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("addStake(address,uint256)", user,  amountStakeSent - totalPortalFee));
     }
 
+    /// @notice Unstake tokens
+    /// @param amount The amount of tokens to unstake
     function unstake(uint256 amount) external {
         address user = msg.sender;
         xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("removeStake(uint256,address)", amount, user));
     }
 
+    /// @notice Callback function for unstaking tokens
+    /// @param user The address of the user to transfer the tokens to
+    /// @param amount The amount of tokens to transfer
     function xunstake(address user, uint256 amount) external xrecv {
         require(isXCall(), "LocalStake: only xcall");
         require(xmsg.sourceChainId == globalChainId, "LocalStake: invalid source chain");

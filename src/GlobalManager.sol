@@ -3,6 +3,9 @@ pragma solidity ^0.8.25;
 
 import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 
+/// @title GlobalManager contract
+/// @dev Manages global operations and interactions with other contracts
+/// @notice Deployed on Omni
 contract GlobalManager is XApp {
     address public owner;
     uint64[] public chainIds;
@@ -13,12 +16,18 @@ contract GlobalManager is XApp {
         owner = msg.sender;
     }
 
+    /// @dev Adds a chain contract to the mapping
+    /// @param chainId The ID of the chain
+    /// @param contractAddress The address of the contract
     function addChainContract(uint64 chainId, address contractAddress) external {
         require(msg.sender == owner, "GlobalManager: only owner");
         addChainId(chainId);
         chainIdContracts[chainId] = contractAddress;
     }
 
+    /// @dev Adds stake for a user on a specific chain
+    /// @param user The address of the user
+    /// @param amount The amount of stake to add
     function addStake(address user, uint256 amount) external xrecv {
         require(isXCall(), "GlobalManager: only xcall");
         require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
@@ -26,6 +35,9 @@ contract GlobalManager is XApp {
         userChainIdStakes[user][xmsg.sourceChainId] += amount;
     }
 
+    /// @dev Removes stake for a user on a specific chain
+    /// @param user The address of the user
+    /// @param amount The amount of stake to remove
     function removeStake(address user, uint256 amount) external xrecv {
         require(isXCall(), "GlobalManager: only xcall");
         require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
