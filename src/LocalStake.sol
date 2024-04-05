@@ -26,8 +26,7 @@ contract LocalStake is XApp {
     /// @notice Unstake tokens
     /// @param amount The amount of tokens to unstake
     function unstake(uint256 amount) external {
-        address user = msg.sender;
-        xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("removeStake(uint256,address)", amount, user));
+        xcall(globalChainId, globalManagerContract, abi.encodeWithSignature("removeStake(uint256,address)", amount, msg.sender));
     }
 
     /// @notice Callback function for unstaking tokens
