@@ -8,7 +8,6 @@ import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
 /// @notice Deployed on Omni
 contract GlobalManager is XApp {
     address public owner;
-    uint64[] public chainIds;
     mapping(uint64 => address) public chainIdContracts;
     mapping(address => mapping(uint64 => uint256)) public userChainIdStakes;
 
@@ -21,7 +20,6 @@ contract GlobalManager is XApp {
     /// @param contractAddress The address of the contract
     function addChainContract(uint64 chainId, address contractAddress) external {
         require(msg.sender == owner, "GlobalManager: only owner");
-        addChainId(chainId);
         chainIdContracts[chainId] = contractAddress;
     }
 
@@ -50,21 +48,7 @@ contract GlobalManager is XApp {
         xcall(xmsg.sourceChainId, xmsg.sender, data);
     }
 
-    function addChainId(uint64 chainId) internal {
-        for (uint i = 0; i < chainIds.length; i++) {
-            if (chainIds[i] == chainId) {
-                return;
-            }
-        }
-        chainIds.push(chainId);
-    }
-
     function isExistingChainId(uint64 chainId) internal view returns (bool) {
-        for (uint256 i = 0; i < chainIds.length; i++) {
-            if (chainIds[i] == chainId) {
-                return true;
-            }
-        }
-        return false;
+        return chainIdContracts[chainId] != address(0);
     }
 }

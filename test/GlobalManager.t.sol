@@ -18,7 +18,6 @@ contract GlobalTest is Test {
         uint64 chainId = 1;
         address contractAddress = address(0x123);
         globalManager.addChainContract(chainId, contractAddress);
-        assertEq(globalManager.chainIds(0), chainId);
         assertEq(globalManager.chainIdContracts(chainId), contractAddress);
     }
 
