@@ -10,7 +10,7 @@ contract GlobalManager is XApp {
     address public owner;
     uint64[] public chainIds;
     mapping(uint64 => address) public chainIdContracts;
-    mapping (address => mapping(uint64 => uint256)) public userChainIdStakes;
+    mapping(address => mapping(uint64 => uint256)) public userChainIdStakes;
 
     constructor(address portal) XApp(portal) {
         owner = msg.sender;
