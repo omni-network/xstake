@@ -5,30 +5,34 @@ import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
+import {LocalToken} from "../src/LocalToken.sol";
 
 contract SimpleStakeTest is Test {
     LocalStake localStake;
     MockPortal portal;
     GlobalManager globalManager;
+    LocalToken localToken;
     address globalManagerAddress;
     uint64 globalChainId = 165; // Testnet Omni EVM chain ID
 
     function setUp() public {
         portal = new MockPortal();
         globalManager = new GlobalManager(address(portal));
+        localToken = new LocalToken();
         globalManagerAddress = address(globalManager);
-        localStake = new LocalStake(address(portal), globalManagerAddress, globalChainId);
+        localStake = new LocalStake(address(portal), globalManagerAddress, globalChainId, address(localToken));
     }
 
     function testStake() public {
-        uint256 stakeAmount = 1 ether;
-        uint256 initialBalance = address(localStake).balance;
+        uint256 feeAmount = 1000 gwei;
+        uint256 stakeAmount = 100 ether;
+        address user = address(0xf00); // Mock user address for testing
 
-        // calculate fee for the xcall in the stake function
-        uint256 fee = portal.feeFor(1, abi.encodeWithSignature("addStake(address,uint256)", address(this), stakeAmount));
-        
-        // Simulate sending ETH to the stake function
-        vm.deal(address(this), stakeAmount);
+        // Simulate staking tokens to the stake function
+        localToken.transfer(user, stakeAmount);
+        vm.deal(user, 1 ether);
+        vm.startPrank(user);
+        localToken.approve(address(localStake), stakeAmount);
         vm.expectCall(
             address(portal), 
             abi.encodeWithSignature(
@@ -36,7 +40,7 @@ contract SimpleStakeTest is Test {
                 globalChainId,
                 abi.encodeWithSignature(
                     "addStake(address,uint256)", 
-                    address(this), 
+                    user, 
                     stakeAmount
                 )
             )
@@ -49,34 +53,40 @@ contract SimpleStakeTest is Test {
                 globalManagerAddress,
                 abi.encodeWithSignature(
                     "addStake(address,uint256)", 
-                    address(this), 
-                    stakeAmount - fee - fee
+                    user, 
+                    stakeAmount
                 )
             )
         );
-        vm.prank(address(this));
-        localStake.stake{value: stakeAmount}();
+        localStake.stake{value: feeAmount}(stakeAmount);
+        vm.stopPrank();
 
         // Check balance of the contract has increased by the stake amount
-        assertEq(address(localStake).balance, initialBalance + stakeAmount - fee, "Stake amount was not correctly received by the SimpleStake contract.");
+        assertEq(localToken.balanceOf(address(localStake)), stakeAmount, "Contract did not receive the stake amount.");
     }
 
-    function testInsufficientStake() public {
+    function testInsufficientFee() public {
+        uint256 feeAmount = 1000 wei;
         uint256 stakeAmount = 1000000;
+        address user = address(0xf00); // Mock user address for testing
 
-        // Simulate sending ETH to the stake function
-        vm.deal(address(this), stakeAmount);
+        // Simulate stake with insufficient fee
+        localToken.transfer(user, stakeAmount);
+        vm.deal(user, stakeAmount);
+        vm.startPrank(user);
+        localToken.approve(address(localStake), stakeAmount);
         vm.expectRevert("LocalStake: insufficient value for xcall fee");
-        vm.prank(address(this));
-        localStake.stake{value: stakeAmount}();
+        localStake.stake{value: feeAmount}(stakeAmount);
+        vm.stopPrank();
     }
 
     function testUnstake() public {
-        uint256 stakeAmount = 1 ether;
-        uint256 unstakeAmount = 0.5 ether;
+        uint256 feeAmount = 1000 gwei;
+        uint256 unstakeAmount = 100 ether;
+        address user = address(0xf00); // Mock user address for testing
 
         // Simulate unstake
-        vm.deal(address(localStake), stakeAmount);
+        vm.deal(user, feeAmount);
         vm.expectCall(
             address(portal), 
             abi.encodeWithSignature(
@@ -84,26 +94,29 @@ contract SimpleStakeTest is Test {
                 globalChainId,
                 globalManagerAddress,
                 abi.encodeWithSignature(
-                    "removeStake(uint256,address)", 
-                    unstakeAmount, 
-                    address(this)
+                    "removeStake(address,uint256)",
+                    user, 
+                    unstakeAmount
                 )
             )
         );
-        vm.prank(address(this));
-        localStake.unstake(unstakeAmount);
+        vm.prank(user);
+        localStake.unstake{value: feeAmount}(unstakeAmount);
     }
 
     function testXUnstake() public {
-        uint256 unstakeAmount = 1 ether;
+        uint256 unstakeAmount = 100 ether;
+        uint256 feeAmount = 1000 gwei;
         address user = address(0xf00); // Mock user address for testing
 
+        localToken.transfer(address(localStake), unstakeAmount);
+
         // Simulate admin contract calling xunstake
-        vm.deal(address(localStake), unstakeAmount);
+        vm.deal(address(localStake), feeAmount);
         vm.prank(globalManagerAddress);
         portal.mockXCall(globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, unstakeAmount));
 
         // Check that the user received the unstake amount
-        assertEq(address(user).balance, unstakeAmount, "User did not receive the unstake amount.");
+        assertEq(localToken.balanceOf(user), unstakeAmount, "User did not receive the unstake amount.");
     }
 }

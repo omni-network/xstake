@@ -11,11 +11,13 @@ contract DeployLocalStake is Script {
     function run() external {
         // Retrieve the Global Manager Contract address from an environment variable
         address globalManagerContractAddress = vm.envAddress("GLOBAL_MANAGER_CONTRACT_ADDRESS");
+        address localTokenAddress = vm.envAddress("LOCAL_TOKEN_ADDRESS");
         require(globalManagerContractAddress != address(0), "Global Manager Contract address not provided");
+        require(localTokenAddress != address(0), "Local Token address not provided");
 
         vm.startBroadcast();
 
-        LocalStake localStake = new LocalStake(portalAddress, globalMaLnagerContractAddress, globalChainId);
+        LocalStake localStake = new LocalStake(portalAddress, globalManagerContractAddress, globalChainId, localTokenAddress);
         console.log("Deployed LocalStake at:", address(localStake));
 
         vm.stopBroadcast();
