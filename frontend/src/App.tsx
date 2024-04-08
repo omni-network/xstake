@@ -35,6 +35,7 @@ function App() {
     const tx = await stakeContract.stake(tokenAmount, { value: xcallFee });
     await tx.wait();
     alert(`Staked successfully on ${currentNetwork}`);
+    getTotalStaked(); // Update total staked on successful stake
   };
 
   const getTotalStaked = async () => {
@@ -51,6 +52,7 @@ function App() {
 
   return (
     <div>
+      <h2>Current Network: {networks[currentNetwork].name}</h2>
       <div>
         <button onClick={() => setCurrentNetwork('op')}>Switch to OP Network</button>
         <button onClick={() => setCurrentNetwork('arb')}>Switch to ARB Network</button>
