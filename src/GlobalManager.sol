@@ -10,6 +10,8 @@ contract GlobalManager is XApp {
     address public owner;
     mapping(uint64 => address) public chainIdToContract;
     mapping(address => mapping(uint64 => uint256)) public userToChainIdToStake;
+    mapping(uint64 => uint256) public chainIdToTotalStake;
+    uint256 public totalStake;
 
     constructor(address portal) XApp(portal) {
         owner = msg.sender;
@@ -30,7 +32,10 @@ contract GlobalManager is XApp {
         require(isXCall(), "GlobalManager: only xcall");
         require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
         require(xmsg.sender == chainIdToContract[xmsg.sourceChainId], "GlobalManager: invalid sender");
+        
         userToChainIdToStake[user][xmsg.sourceChainId] += amount;
+        chainIdToTotalStake[xmsg.sourceChainId] += amount;
+        totalStake += amount;
     }
 
     /// @dev Removes stake for a user on a specific chain
@@ -41,11 +46,28 @@ contract GlobalManager is XApp {
         require(isExistingChainId(xmsg.sourceChainId), "GlobalManager: chain not found");
         require(xmsg.sender == chainIdToContract[xmsg.sourceChainId], "GlobalManager: invalid sender");
         require(userToChainIdToStake[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
+
         bytes memory data = abi.encodeWithSignature("xunstake(address,uint256)", user, amount);
         uint256 fee = feeFor(xmsg.sourceChainId, data);
         require(address(this).balance >= fee, "GlobalManager: insufficient fee");
+
         userToChainIdToStake[user][xmsg.sourceChainId] -= amount;
+        chainIdToTotalStake[xmsg.sourceChainId] -= amount;
+        totalStake -= amount;
+
         xcall(xmsg.sourceChainId, xmsg.sender, data);
+    }
+
+    function getUserStakeOnChain(address user, uint64 chainId) external view returns (uint256) {
+        return userToChainIdToStake[user][chainId];
+    }
+
+    function getTotalStakeOnChain(uint64 chainId) external view returns (uint256) {
+        return chainIdToTotalStake[chainId];
+    }
+
+    function getTotalStake() external view returns (uint256) {
+        return totalStake;
     }
 
     function isExistingChainId(uint64 chainId) internal view returns (bool) {
