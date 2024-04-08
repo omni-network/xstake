@@ -5,8 +5,8 @@ import {Script, console} from "lib/forge-std/src/Script.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 
 contract DeployLocalStake is Script {
-    address public portalAddress = address(0xb93b2c22d78e24Fc52Db2bDE3EF8bE659e3FE7a3); // Update to the actual portal address
-    uint64 public globalChainId = 16561; // Example chain ID for Omni Network (testnet)
+    address public portalAddress = address(0xbeef); // Update to the actual portal address
+    uint64 public globalChainId = 165; // Example chain ID for Omni Network (testnet)
 
     function run() external {
         // Retrieve the Global Manager Contract address from an environment variable
