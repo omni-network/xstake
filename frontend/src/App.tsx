@@ -64,7 +64,7 @@ function App() {
       </div>
       <div>
         {totalStakedOnOmni && (
-          <p>Total Staked on Omni: {totalStakedOnOmni} LocalToken</p>
+          <p>Total Staked on Omni: {totalStakedOnOmni} LocalTokens</p>
         )}
       </div>
     </div>
