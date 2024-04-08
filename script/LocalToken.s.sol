@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import {Script, console} from "../lib/forge-std/src/Script.sol";
-import {LocalToken} from "../src/LocalToken.sol"; // Update the import path to your LocalToken contract
+import {LocalToken} from "../src/LocalToken.sol";
 
 contract DeployLocalToken is Script {
     function run() external {

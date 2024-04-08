@@ -5,9 +5,10 @@ import {Script, console} from "lib/forge-std/src/Script.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
 
 contract DeployGlobalManager is Script {
-    address public portalAddress = address(0xbeef); // Update to the actual portal address
 
     function run() external {
+        address portalAddress = vm.envAddress("PORTAL_ADDRESS");
+
         vm.startBroadcast();
 
         GlobalManager globalManager = new GlobalManager(portalAddress);

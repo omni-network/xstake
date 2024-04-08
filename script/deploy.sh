@@ -4,6 +4,7 @@
 forge build
 
 # RPC env vars
+export PORTAL_ADDRESS=0xb93b2c22d78e24Fc52Db2bDE3EF8bE659e3FE7a3
 export OMNI_RPC_URL=http://localhost:8000
 export OP_RPC_URL=http://localhost:8002
 export ARB_RPC_URL=http://localhost:8003
