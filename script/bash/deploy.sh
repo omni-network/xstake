@@ -3,12 +3,6 @@
 # Compile all contracts
 forge build
 
-# RPC env vars
-export PORTAL_ADDRESS=0xb93b2c22d78e24Fc52Db2bDE3EF8bE659e3FE7a3
-export OMNI_RPC_URL=http://localhost:8000
-export OP_RPC_URL=http://localhost:8002
-export ARB_RPC_URL=http://localhost:8003
-
 # Omni Deployment
 echo "\n"
 echo "============================================================="
@@ -51,9 +45,9 @@ echo "\n"
 echo "============================================================="
 echo "Deployment Summary"
 echo "============================================================="
-echo "Omni GlobalManager: $GLOBAL_MANAGER_CONTRACT_ADDRESS"
-echo "OP LocalToken: $OP_LOCAL_TOKEN_ADDRESS"
-echo "OP LocalStake: $OP_LOCAL_STAKE_ADDRESS"
-echo "ARB LocalToken: $ARB_LOCAL_TOKEN_ADDRESS"
-echo "ARB LocalStake: $ARB_LOCAL_STAKE_ADDRESS"
+echo "Omni GlobalManager:   $GLOBAL_MANAGER_CONTRACT_ADDRESS"
+echo "OP LocalToken:        $OP_LOCAL_TOKEN_ADDRESS"
+echo "OP LocalStake:        $OP_LOCAL_STAKE_ADDRESS"
+echo "ARB LocalToken:       $ARB_LOCAL_TOKEN_ADDRESS"
+echo "ARB LocalStake:       $ARB_LOCAL_STAKE_ADDRESS"
 echo "============================================================="
