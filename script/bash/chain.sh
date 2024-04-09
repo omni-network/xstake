@@ -6,7 +6,7 @@ send_transaction() {
   output=$(cast send "$@" 2>&1)
   # Check the exit status of the cast command
   if [ $? -eq 0 ]; then
-    echo "  ✔ Transaction successfull."
+    echo "  ✔ Transaction successful."
   else
     echo "  ❌ Transaction failed. Error: $output"
   fi
