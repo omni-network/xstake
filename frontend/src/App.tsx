@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import localStakeAbi from './abis/LocalStake.json';
 import globalManagerAbi from './abis/GlobalManager.json';
@@ -50,6 +50,11 @@ function App() {
     setTotalStakedOnOmni(ethers.formatEther(totalStaked));
   };
 
+  // Fetch total staked on Omni when the component mounts
+  useEffect(() => {
+    getTotalStaked();
+  }, []); // The empty dependency array makes this effect run only on mount
+
   return (
     <div>
       <h2>Current Network: {networks[currentNetwork].name}</h2>
@@ -60,12 +65,9 @@ function App() {
       <div>
         <input type="text" placeholder="# of LocalTokens" id="stakeAmount" />
         <button onClick={() => stake((document.getElementById('stakeAmount') as HTMLInputElement)?.value)}>Stake</button>
-        <button onClick={getTotalStaked}>Get Total Staked on Omni</button>
       </div>
       <div>
-        {totalStakedOnOmni && (
-          <p>Total Staked on Omni: {totalStakedOnOmni} LocalTokens</p>
-        )}
+        <p>Total Staked on Omni: {totalStakedOnOmni} LocalTokens</p>
       </div>
     </div>
   );
