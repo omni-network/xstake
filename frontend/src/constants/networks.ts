@@ -12,21 +12,21 @@ interface Networks {
 }
 
 export const networks: Networks = {
+  omni: {
+    name: "Omni",
+    rpcUrl: "http://localhost:8000",
+    globalManagerContractAddress: "0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575",
+  },
   op: {
     name: "Optimism",
     rpcUrl: "http://localhost:8002",
-    stakeContractAddress: "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
-    localTokenContractAddress: "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
+    localTokenContractAddress: "0x4C2F7092C2aE51D986bEFEe378e50BD4dB99C901",
+    stakeContractAddress: "0x7A9Ec1d04904907De0ED7b6839CcdD59c3716AC9",
   },
   arb: {
     name: "Arbitrum",
     rpcUrl: "http://localhost:8003",
-    stakeContractAddress: "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
-    localTokenContractAddress: "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-  },
-  omni: {
-    name: "Omni",
-    rpcUrl: "http://localhost:8000",
-    globalManagerContractAddress: "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+    localTokenContractAddress: "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
+    stakeContractAddress: "0x1291Be112d480055DaFd8a610b7d1e203891C274",
   }
 };
