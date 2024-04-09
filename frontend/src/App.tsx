@@ -6,7 +6,7 @@ import localTokenAbi from './abis/LocalToken.json';
 import { networks } from './constants/networks';
 
 function App() {
-  const [hasStaked, setHasStaked] = useState(false); // Store if the user has staked on the current network
+  const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
   const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network is OP
   const [totalStakedOnOmni, setTotalStakedOnOmni] = useState(''); // Store the total staked globally
@@ -37,7 +37,7 @@ function App() {
   const requestNetworkChange = async (network: string) => {
     try {
       const provider = new ethers.JsonRpcProvider(networks[network].rpcUrl);
-      const chainId = await (await provider.getNetwork()).chainId;
+      const chainId = (await provider.getNetwork()).chainId;
       if (!chainId) {
         throw new Error(`Chain ID not found for network: ${network}`);
       }
@@ -85,7 +85,12 @@ function App() {
 
       // Calculate the amount for ERC20 tokens to stake
       const tokenAmount = ethers.parseEther(amount);
-      await localTokenContract.approve(stakeAddress, await localTokenContract.totalSupply());
+      // Check if the user has approved the stake contract to spend the tokens
+      const allowance = await localTokenContract.allowance(currentAccount, stakeAddress);
+      console.log("Allowance:", allowance.toString());
+      if (allowance < tokenAmount) {
+        await localTokenContract.approve(stakeAddress, await localTokenContract.totalSupply());
+      }
 
       // This value should be adjusted based on the actual xcall fee requirement
       const xcallFee = ethers.parseEther("0.01");
@@ -93,7 +98,7 @@ function App() {
       const tx = await stakeContract.stake(tokenAmount, { value: xcallFee });
       await tx.wait();
       alert(`Staked successfully on ${currentNetwork}`);
-      setHasStaked(true);
+      setStakeVal(stakeVal + parseInt(amount));
     } catch (error) {
       console.error("Failed to stake:", (error as any).message);
     }
@@ -135,6 +140,7 @@ function App() {
   const getUserTotalStakedLocal = async () => {
     try {
       if (!currentAccount) {
+        console.error("No account found");
         return;
       }
 
@@ -144,8 +150,8 @@ function App() {
         throw new Error('Global manager contract address not found for Omni network');
       }
       const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, omniProvider);
-      const windowProvider = new ethers.BrowserProvider((window as any).ethereum);
-      const chainId = (await windowProvider.getNetwork()).chainId;
+      const provider = new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
+      const chainId = (await provider.getNetwork()).chainId;
 
       const userTotalStaked = await globalManagerContract.getUserStakeOnChain(currentAccount, chainId);
       setUserTotalStakedLocal(ethers.formatEther(userTotalStaked));
@@ -155,10 +161,37 @@ function App() {
   }
 
   useEffect(() => {
+    if (!currentAccount) {
+      return;
+    }
     getUserTotalStakedLocal();
-    getTotalStaked();
+  }, [currentAccount, currentNetwork]); 
+
+  useEffect(() => {
     getTotalStakedLocal();
-  }, [currentAccount, currentNetwork, hasStaked]); // Re-run this effect when currentAccount changes
+    if (!currentAccount) {
+      return;
+    }
+    getUserTotalStakedLocal();
+  }, [currentNetwork]);
+
+  useEffect(() => {
+    getTotalStakedLocal();
+    getTotalStaked();
+    if (!currentAccount) {
+      return;
+    }
+    getUserTotalStakedLocal();
+  }, [stakeVal]);
+
+  useEffect(() => {
+    getTotalStakedLocal();
+    getTotalStaked();
+    if (!currentAccount) {
+      return;
+    }
+    getUserTotalStakedLocal();
+  }, []);
 
   return (
     <div>
