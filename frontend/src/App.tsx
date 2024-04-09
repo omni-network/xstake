@@ -6,9 +6,12 @@ import localTokenAbi from './abis/LocalToken.json';
 import { networks } from './constants/networks';
 
 function App() {
-  const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network
-  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState('');
+  const [hasStaked, setHasStaked] = useState(false); // Store if the user has staked on the current network
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
+  const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network is OP
+  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState(''); // Store the total staked globally
+  const [totalStakedLocal, setTotalStakedLocal] = useState(''); // Store the total staked on the current network
+  const [userTotalStakedLocal, setUserTotalStakedLocal] = useState('?'); // Store the total staked by the user on the current network
 
   // Connect to the user's wallet
   const connectWallet = async () => {
@@ -30,46 +33,70 @@ function App() {
     }
   };
 
-  // Modified getProvider function to use MetaMask's provider if an account is connected
-  const getProvider = () => {
-    if (!currentAccount) {
-      // Fallback to JsonRpcProvider if no account is connected
-      return new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
+  // Request to switch the network
+  const requestNetworkChange = async (network: string) => {
+    try {
+      const provider = new ethers.JsonRpcProvider(networks[network].rpcUrl);
+      const chainId = await (await provider.getNetwork()).chainId;
+      if (!chainId) {
+        throw new Error(`Chain ID not found for network: ${network}`);
+      }
+      const chainIdHex = ethers.toBeHex(chainId);
+      const rpcUrl = networks[network].rpcUrl;
+      (window as any).ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+            chainId: chainIdHex,
+            rpcUrls: [rpcUrl],
+            chainName: networks[network].name,
+            nativeCurrency: {
+                name: "ETH",
+                symbol: "ETH",
+                decimals: 18
+            },
+            blockExplorerUrls: ["https://etherscan.io"]
+        }]
+    });
+      setCurrentNetwork(network);
+    } catch (error) {
+      console.error(error);
     }
-    // Use BrowserProvider for connected accounts
-    return new ethers.BrowserProvider((window as any).ethereum);
   };
 
   const stake = async (amount: string) => {
-    if (!currentAccount) {
-      alert("Please connect your wallet first.");
-      return;
+    try {
+      if (!currentAccount) {
+        alert("Please connect your wallet first.");
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner(currentAccount);
+      const stakeAddress = networks[currentNetwork].stakeContractAddress;
+      if (!stakeAddress) {
+        throw new Error(`Stake contract address not found for network: ${currentNetwork}`);
+      }
+      const stakeContract = new ethers.Contract(stakeAddress, localStakeAbi, signer);
+      const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
+      if (!localTokenAddress) {
+        throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
+      }
+      const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, signer);
+
+      // Calculate the amount for ERC20 tokens to stake
+      const tokenAmount = ethers.parseEther(amount);
+      await localTokenContract.approve(stakeAddress, await localTokenContract.totalSupply());
+
+      // This value should be adjusted based on the actual xcall fee requirement
+      const xcallFee = ethers.parseEther("0.01");
+
+      const tx = await stakeContract.stake(tokenAmount, { value: xcallFee });
+      await tx.wait();
+      alert(`Staked successfully on ${currentNetwork}`);
+      setHasStaked(true);
+    } catch (error) {
+      console.error("Failed to stake:", (error as any).message);
     }
-
-    const provider = getProvider();
-    const signer = await provider.getSigner();
-    const stakeAddress = networks[currentNetwork].stakeContractAddress;
-    if (!stakeAddress) {
-      throw new Error(`Stake contract address not found for network: ${currentNetwork}`);
-    }
-    const stakeContract = new ethers.Contract(stakeAddress, localStakeAbi, signer);
-    const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
-    if (!localTokenAddress) {
-      throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
-    }
-    const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, signer);
-
-    // Calculate the amount for ERC20 tokens to stake
-    const tokenAmount = ethers.parseEther(amount);
-    await localTokenContract.approve(stakeAddress, tokenAmount);
-
-    // This value should be adjusted based on the actual xcall fee requirement
-    const xcallFee = ethers.parseEther("0.01");
-
-    const tx = await stakeContract.stake(tokenAmount, { value: xcallFee });
-    await tx.wait();
-    alert(`Staked successfully on ${currentNetwork}`);
-    getTotalStaked(); // Update total staked on successful stake
   };
 
   const getTotalStaked = async () => {
@@ -88,29 +115,75 @@ function App() {
     }
   };
 
+  const getTotalStakedLocal = async () => {
+    try {
+      const provider = new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
+      const stakeAddress = networks[currentNetwork].stakeContractAddress;
+      const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
+      if (!localTokenAddress) {
+        throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
+      }
+      const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, provider);
+
+      const totalStaked = await localTokenContract.balanceOf(stakeAddress);
+      setTotalStakedLocal(ethers.formatEther(totalStaked));
+    } catch (error) {
+      console.error("Failed to fetch local staked:", (error as any).message);
+    }
+  };
+
+  const getUserTotalStakedLocal = async () => {
+    try {
+      if (!currentAccount) {
+        return;
+      }
+
+      const omniProvider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
+      const globalManagerAddress = networks.omni.globalManagerContractAddress;
+      if (!globalManagerAddress) {
+        throw new Error('Global manager contract address not found for Omni network');
+      }
+      const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, omniProvider);
+      const windowProvider = new ethers.BrowserProvider((window as any).ethereum);
+      const chainId = (await windowProvider.getNetwork()).chainId;
+
+      const userTotalStaked = await globalManagerContract.getUserStakeOnChain(currentAccount, chainId);
+      setUserTotalStakedLocal(ethers.formatEther(userTotalStaked));
+    } catch (error) {
+      console.error("Failed to fetch user local staked:", (error as any).message);
+    }
+  }
+
   useEffect(() => {
-    // Only fetch total staked if a current account is set
+    getUserTotalStakedLocal();
     getTotalStaked();
-  }, [currentAccount]); // Re-run this effect when currentAccount changes
+    getTotalStakedLocal();
+  }, [currentAccount, currentNetwork, hasStaked]); // Re-run this effect when currentAccount changes
 
   return (
     <div>
       <h2>Current Network: {networks[currentNetwork].name}</h2>
       <div>
-        <button onClick={() => setCurrentNetwork('op')}>Switch to OP Network</button>
-        <button onClick={() => setCurrentNetwork('arb')}>Switch to ARB Network</button>
+        <button onClick={() => requestNetworkChange('op')}>Switch to OP Network</button>
+        <button onClick={() => requestNetworkChange('arb')}>Switch to ARB Network</button>
       </div>
+      <br/>
       <div>
         {currentAccount ? (
           <p>Connected as: {currentAccount}</p>
         ) : (
           <button onClick={connectWallet}>Connect Wallet</button>
         )}
+      </div>
+      <br/>
+      <div>
         <input type="text" placeholder="# of LocalTokens" id="stakeAmount" />
         <button onClick={() => stake((document.getElementById('stakeAmount') as HTMLInputElement)?.value)}>Stake</button>
-      </div>
-      <div>
-        <p>Total Staked on Omni: {totalStakedOnOmni} LocalTokens</p>
+        <h3>User Info</h3>
+        <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
+        <h3>App Info</h3>
+        <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
+        <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
       </div>
     </div>
   );

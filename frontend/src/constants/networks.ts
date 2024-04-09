@@ -2,7 +2,6 @@
 interface Network {
   name: string;
   rpcUrl: string;
-  chainId?: number;
   stakeContractAddress?: string;
   localTokenContractAddress?: string;
   globalManagerContractAddress?: string;
@@ -14,23 +13,20 @@ interface Networks {
 
 export const networks: Networks = {
   omni: {
-    name: "Omni",
+    name: "Omni Test",
     rpcUrl: "http://localhost:8000",
-    chainId: 16561,
-    globalManagerContractAddress: "0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575",
+    globalManagerContractAddress: "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
   },
   op: {
-    name: "Optimism",
+    name: "Optimism Test Rollup",
     rpcUrl: "http://localhost:8002",
-    chainId: 100,
-    localTokenContractAddress: "0x4C2F7092C2aE51D986bEFEe378e50BD4dB99C901",
-    stakeContractAddress: "0x7A9Ec1d04904907De0ED7b6839CcdD59c3716AC9",
+    localTokenContractAddress: "0xCace1b78160AE76398F486c8a18044da0d66d86D",
+    stakeContractAddress: "0xD5ac451B0c50B9476107823Af206eD814a2e2580",
   },
   arb: {
-    name: "Arbitrum",
+    name: "Arbitrum Test Rollup",
     rpcUrl: "http://localhost:8003",
-    chainId: 200,
-    localTokenContractAddress: "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
-    stakeContractAddress: "0x1291Be112d480055DaFd8a610b7d1e203891C274",
+    localTokenContractAddress: "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
+    stakeContractAddress: "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
   }
 };
