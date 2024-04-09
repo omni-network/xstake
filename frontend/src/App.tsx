@@ -8,11 +8,45 @@ import { networks } from './constants/networks';
 function App() {
   const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network
   const [totalStakedOnOmni, setTotalStakedOnOmni] = useState('');
+  const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
 
-  const getProvider = (networkKey: string) => new ethers.JsonRpcProvider(networks[networkKey].rpcUrl);
+  // Connect to the user's wallet
+  const connectWallet = async () => {
+    try {
+      // Check if MetaMask is installed
+      if ((window as any).ethereum) {
+        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length === 0) {
+          console.log('No account found');
+        } else {
+          console.log('Connected account:', accounts[0]);
+          setCurrentAccount(accounts[0]); // Set the first account as the current account
+        }
+      } else {
+        alert('MetaMask is not installed. Please install it to use this app.');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Modified getProvider function to use MetaMask's provider if an account is connected
+  const getProvider = () => {
+    if (!currentAccount) {
+      // Fallback to JsonRpcProvider if no account is connected
+      return new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
+    }
+    // Use BrowserProvider for connected accounts
+    return new ethers.BrowserProvider((window as any).ethereum);
+  };
 
   const stake = async (amount: string) => {
-    const provider = getProvider(currentNetwork);
+    if (!currentAccount) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+
+    const provider = getProvider();
     const signer = await provider.getSigner();
     const stakeAddress = networks[currentNetwork].stakeContractAddress;
     if (!stakeAddress) {
@@ -39,21 +73,25 @@ function App() {
   };
 
   const getTotalStaked = async () => {
-    const provider = getProvider('omni');
-    const globalManagerAddress = networks.omni.globalManagerContractAddress;
-    if (!globalManagerAddress) {
-      throw new Error('Global manager contract address not found for Omni network');
+    try {
+      const provider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
+      const globalManagerAddress = networks.omni.globalManagerContractAddress;
+      if (!globalManagerAddress) {
+        throw new Error('Global manager contract address not found for Omni network');
+      }
+      const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, provider);
+    
+      const totalStaked = await globalManagerContract.getTotalStake();
+      setTotalStakedOnOmni(ethers.formatEther(totalStaked));
+    } catch (error) {
+      console.error("Failed to fetch total staked:", (error as any).message);
     }
-    const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, provider);
-
-    const totalStaked = await globalManagerContract.getTotalStake();
-    setTotalStakedOnOmni(ethers.formatEther(totalStaked));
   };
 
-  // Fetch total staked on Omni when the component mounts
   useEffect(() => {
+    // Only fetch total staked if a current account is set
     getTotalStaked();
-  }, []); // The empty dependency array makes this effect run only on mount
+  }, [currentAccount]); // Re-run this effect when currentAccount changes
 
   return (
     <div>
@@ -63,6 +101,11 @@ function App() {
         <button onClick={() => setCurrentNetwork('arb')}>Switch to ARB Network</button>
       </div>
       <div>
+        {currentAccount ? (
+          <p>Connected as: {currentAccount}</p>
+        ) : (
+          <button onClick={connectWallet}>Connect Wallet</button>
+        )}
         <input type="text" placeholder="# of LocalTokens" id="stakeAmount" />
         <button onClick={() => stake((document.getElementById('stakeAmount') as HTMLInputElement)?.value)}>Stake</button>
       </div>
