@@ -36,18 +36,12 @@ function App() {
   // Request to switch the network
   const requestNetworkChange = async (network: string) => {
     try {
-      const provider = new ethers.JsonRpcProvider(networks[network].rpcUrl);
-      const chainId = (await provider.getNetwork()).chainId;
-      if (!chainId) {
-        throw new Error(`Chain ID not found for network: ${network}`);
-      }
-      const chainIdHex = ethers.toBeHex(chainId);
-      const rpcUrl = networks[network].rpcUrl;
+      const chainId = await getNetworkChainId(network);
       (window as any).ethereum.request({
         method: "wallet_addEthereumChain",
         params: [{
-            chainId: chainIdHex,
-            rpcUrls: [rpcUrl],
+            chainId: ethers.toBeHex(chainId),
+            rpcUrls: [networks[network].rpcUrl],
             chainName: networks[network].name,
             nativeCurrency: {
                 name: "ETH",
@@ -71,16 +65,9 @@ function App() {
 
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner(currentAccount);
-      const stakeAddress = networks[currentNetwork].stakeContractAddress;
-      if (!stakeAddress) {
-        throw new Error(`Stake contract address not found for network: ${currentNetwork}`);
-      }
-      const stakeContract = new ethers.Contract(stakeAddress, localStakeAbi, signer);
-      const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
-      if (!localTokenAddress) {
-        throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
-      }
-      const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, signer);
+      const stakeContract = getStakeContract(signer);
+      const stakeAddress = await stakeContract.getAddress();
+      const localTokenContract = getLocalTokenContract(signer);
 
       // Calculate the amount for ERC20 tokens to stake
       const tokenAmount = ethers.parseEther(amount);
@@ -111,11 +98,7 @@ function App() {
   const getTotalStaked = async () => {
     try {
       const provider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
-      const globalManagerAddress = networks.omni.globalManagerContractAddress;
-      if (!globalManagerAddress) {
-        throw new Error('Global manager contract address not found for Omni network');
-      }
-      const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, provider);
+      const globalManagerContract = getGlobalManagerContract(provider);
     
       const totalStaked = await globalManagerContract.getTotalStake();
       setTotalStakedOnOmni(ethers.formatEther(totalStaked));
@@ -128,11 +111,7 @@ function App() {
     try {
       const provider = new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
       const stakeAddress = networks[currentNetwork].stakeContractAddress;
-      const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
-      if (!localTokenAddress) {
-        throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
-      }
-      const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, provider);
+      const localTokenContract = getLocalTokenContract(provider);
 
       const totalStaked = await localTokenContract.balanceOf(stakeAddress);
       setTotalStakedLocal(ethers.formatEther(totalStaked));
@@ -149,13 +128,8 @@ function App() {
       }
 
       const omniProvider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
-      const globalManagerAddress = networks.omni.globalManagerContractAddress;
-      if (!globalManagerAddress) {
-        throw new Error('Global manager contract address not found for Omni network');
-      }
-      const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, omniProvider);
-      const provider = new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
-      const chainId = (await provider.getNetwork()).chainId;
+      const globalManagerContract = getGlobalManagerContract(omniProvider);
+      const chainId = await getNetworkChainId(currentNetwork);
 
       const userTotalStaked = await globalManagerContract.getUserStakeOnChain(currentAccount, chainId);
       setUserTotalStakedLocal(ethers.formatEther(userTotalStaked));
@@ -217,6 +191,39 @@ function App() {
       </div>
     </div>
   );
+
+  async function getNetworkChainId(network: string) {
+    const provider = new ethers.JsonRpcProvider(networks[network].rpcUrl);
+    const chainId = (await provider.getNetwork()).chainId;
+    return chainId;
+  }
+
+  function getGlobalManagerContract(provider: ethers.JsonRpcProvider) {
+    const globalManagerAddress = networks.omni.globalManagerContractAddress;
+    if (!globalManagerAddress) {
+      throw new Error('Global manager contract address not found for Omni network');
+    }
+    const globalManagerContract = new ethers.Contract(globalManagerAddress, globalManagerAbi, provider);
+    return globalManagerContract;
+  }
+
+  function getStakeContract(signer: ethers.JsonRpcSigner) {
+    const stakeAddress = networks[currentNetwork].stakeContractAddress;
+    if (!stakeAddress) {
+      throw new Error(`Stake contract address not found for network: ${currentNetwork}`);
+    }
+    const stakeContract = new ethers.Contract(stakeAddress, localStakeAbi, signer);
+    return stakeContract;
+  }
+
+  function getLocalTokenContract(signer: ethers.JsonRpcSigner | ethers.JsonRpcProvider) {
+    const localTokenAddress = networks[currentNetwork].localTokenContractAddress;
+    if (!localTokenAddress) {
+      throw new Error(`Local token contract address not found for network: ${currentNetwork}`);
+    }
+    const localTokenContract = new ethers.Contract(localTokenAddress, localTokenAbi, signer);
+    return localTokenContract;
+  }
 }
 
 export default App;
