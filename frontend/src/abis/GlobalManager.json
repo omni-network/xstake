@@ -67,46 +67,8 @@
   },
   {
     "type": "function",
-    "name": "chainIdToTotalStake",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getTotalStake",
     "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTotalStakeOnChain",
-    "inputs": [
-      {
-        "name": "chainId",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
     "outputs": [
       {
         "name": "",

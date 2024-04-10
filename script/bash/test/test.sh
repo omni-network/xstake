@@ -2,12 +2,12 @@
 
 # !NOTE: Run from the root of the project
 # gather env vars
-source script/env.sh
+source script/bash/env.sh
 
 # Deployed contract addresses
-export GLOBAL_MANAGER_CONTRACT_ADDRESS=0xc6e7DF5E7b4f2A278906862b61205850344D4e7d
-export OP_LOCAL_TOKEN_ADDRESS=0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB
-export OP_LOCAL_STAKE_ADDRESS=0x9E545E3C0baAB3E08CdfD552C960A1050f373042
+export GLOBAL_MANAGER_CONTRACT_ADDRESS=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
+export OP_LOCAL_TOKEN_ADDRESS=0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+export OP_LOCAL_STAKE_ADDRESS=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
 
 # Approve the LocalStake contract to spend tokens
 cast send $OP_LOCAL_TOKEN_ADDRESS "approve(address,uint256)" $OP_LOCAL_STAKE_ADDRESS 100 --private-key $PRIVATE_KEY --rpc-url $OP_RPC_URL

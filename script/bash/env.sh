@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export PORTAL_ADDRESS=0xb93b2c22d78e24Fc52Db2bDE3EF8bE659e3FE7a3 # testnet portal address (change it for other networks)
+export PORTAL_ADDRESS=0xf4060C06cAD9Dd22dc520d04c0a2E139303091CA # testnet portal address (change it for other networks)
 export GLOBAL_CHAIN_ID=16561 # testnet global chain ID is 165
 export OMNI_RPC_URL=http://localhost:8000
 export OP_CHAIN_ID=100 # Optimism Sepolia Chain ID is 11155420

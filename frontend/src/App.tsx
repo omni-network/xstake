@@ -9,8 +9,8 @@ function App() {
   const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
   const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network is OP
-  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState(''); // Store the total staked globally
-  const [totalStakedLocal, setTotalStakedLocal] = useState(''); // Store the total staked on the current network
+  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState('?'); // Store the total staked globally
+  const [totalStakedLocal, setTotalStakedLocal] = useState('?'); // Store the total staked on the current network
   const [userTotalStakedLocal, setUserTotalStakedLocal] = useState('?'); // Store the total staked by the user on the current network
 
   // Connect to the user's wallet
@@ -54,7 +54,6 @@ function App() {
                 symbol: "ETH",
                 decimals: 18
             },
-            blockExplorerUrls: ["https://etherscan.io"]
         }]
     });
       setCurrentNetwork(network);
@@ -89,14 +88,19 @@ function App() {
       const allowance = await localTokenContract.allowance(currentAccount, stakeAddress);
       console.log("Allowance:", allowance.toString());
       if (allowance < tokenAmount) {
-        await localTokenContract.approve(stakeAddress, await localTokenContract.totalSupply());
+        console.log("Approving stake contract to spend tokens");
+        const totalSupply = await localTokenContract.totalSupply();
+        const aTx = await localTokenContract.approve(stakeAddress, ethers.parseEther(totalSupply.toString()));
+        await aTx.wait();
+        const newAllowance = await localTokenContract.allowance(currentAccount, stakeAddress);
+        console.log("New allowance:", newAllowance.toString());
       }
 
       // This value should be adjusted based on the actual xcall fee requirement
       const xcallFee = ethers.parseEther("0.01");
 
-      const tx = await stakeContract.stake(tokenAmount, { value: xcallFee });
-      await tx.wait();
+      const sTx = await stakeContract.stake(tokenAmount, { value: xcallFee });
+      await sTx.wait();
       alert(`Staked successfully on ${currentNetwork}`);
       setStakeVal(stakeVal + parseInt(amount));
     } catch (error) {
@@ -160,20 +164,13 @@ function App() {
     }
   }
 
-  useEffect(() => {
+  useEffect(() => {   
+     getTotalStakedLocal();
     if (!currentAccount) {
       return;
     }
     getUserTotalStakedLocal();
   }, [currentAccount, currentNetwork]); 
-
-  useEffect(() => {
-    getTotalStakedLocal();
-    if (!currentAccount) {
-      return;
-    }
-    getUserTotalStakedLocal();
-  }, [currentNetwork]);
 
   useEffect(() => {
     getTotalStakedLocal();
