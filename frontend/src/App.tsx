@@ -5,6 +5,9 @@ import globalManagerAbi from './abis/GlobalManager.json';
 import localTokenAbi from './abis/LocalToken.json';
 import { networks } from './constants/networks';
 
+import './App.css'; // Or './App.scss' if using SCSS
+
+
 function App() {
   const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
@@ -189,6 +192,7 @@ function App() {
         <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
         <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
       </div>
+      <img src={`${process.env.PUBLIC_URL}/logo.svg`} alt="Logo" style={{ width: 180, margin: 'auto', display: 'block', marginLeft: 0 }} />
     </div>
   );
 

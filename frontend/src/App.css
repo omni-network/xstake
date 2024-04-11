@@ -1,0 +1,26 @@
+body {
+    background-color: white;
+    color: black;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  button {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: blue;
+    color: white;
+  }
+  
+  input[type="text"] {
+    border: 2px solid black;
+    padding: 10px;
+    color: black;
+  }
+  
