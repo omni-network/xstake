@@ -1,0 +1,57 @@
+/* Navbar.css */
+.navbar {
+    font-family: 'Manrope', sans-serif;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    height: 40px;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.network-selector {
+    font-weight: 700;
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    position: relative;
+    background-color: #FFFFFF;
+    transition: background-color 0.3s;
+}
+
+.network-selector:hover {
+    background-color: #F0F0F0;
+}
+
+.change-network {
+    font-size: inherit;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    background-color: transparent;
+    padding: 5px 15px;
+    margin: 0 10px 0 0;
+    cursor: pointer;
+    transition: color 0.3s, background-color 0.3s;
+}
+
+.connect-wallet {
+    font-size: inherit;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    background-color: transparent;
+    padding: 5px 15px;
+    cursor: pointer;
+    color: black;
+    transition: color 0.3s, background-color 0.3s;
+}

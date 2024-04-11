@@ -5,6 +5,8 @@ import globalManagerAbi from './abis/GlobalManager.json';
 import localTokenAbi from './abis/LocalToken.json';
 import { networks } from './constants/networks';
 
+import Navbar from './components/Navbar/Navbar';
+
 import './App.css'; // Or './App.scss' if using SCSS
 
 
@@ -169,30 +171,31 @@ function App() {
 
   return (
     <div>
-      <h2>Current Network: {networks[currentNetwork].name}</h2>
-      <div>
-        <button onClick={() => requestNetworkChange('op')}>Switch to OP Network</button>
-        <button onClick={() => requestNetworkChange('arb')}>Switch to ARB Network</button>
-      </div>
-      <br/>
-      <div>
-        {currentAccount ? (
-          <p>Connected as: {currentAccount}</p>
-        ) : (
-          <button onClick={connectWallet}>Connect Wallet</button>
-        )}
-      </div>
+
+      <Navbar
+        currentNetwork={currentNetwork}
+        networks={networks}
+        requestNetworkChange={requestNetworkChange}
+        currentAccount={currentAccount}
+        connectWallet={connectWallet}
+      />
+
       <br/>
       <div>
         <input type="text" placeholder="# of LocalTokens" id="stakeAmount" />
         <button onClick={() => stake((document.getElementById('stakeAmount') as HTMLInputElement)?.value)}>Stake</button>
-        <h3>User Info</h3>
-        <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
-        <h3>App Info</h3>
-        <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
-        <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
+        <div className="stats">
+          <div>
+            <h3>User Info</h3>
+            <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
+          </div>
+          <div>
+            <h3>App Info</h3>
+            <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
+            <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
+          </div>
+        </div>
       </div>
-      <img src={`${process.env.PUBLIC_URL}/logo.svg`} alt="Logo" style={{ width: 180, margin: 'auto', display: 'block', marginLeft: 0 }} />
     </div>
   );
 
