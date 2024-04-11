@@ -24,14 +24,9 @@
     font-weight: 700;
     padding: 5px 15px;
     border-radius: 20px;
-    cursor: pointer;
     position: relative;
     background-color: #FFFFFF;
     transition: background-color 0.3s;
-}
-
-.network-selector:hover {
-    background-color: #F0F0F0;
 }
 
 .change-network {
@@ -40,7 +35,7 @@
     border-radius: 10px;
     background-color: transparent;
     padding: 5px 15px;
-    margin: 0 10px 0 0;
+    margin: 0 10px 0 10px;
     cursor: pointer;
     transition: color 0.3s, background-color 0.3s;
 }
