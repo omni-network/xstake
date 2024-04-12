@@ -7,6 +7,7 @@ import { networks } from './constants/networks';
 
 import Navbar from './components/Navbar/Navbar';
 import StakeInput from './components/StakeInput/StakeInput';
+import StakingStats from './components/StakingStats/StakingStats';
 
 import './App.css';
 
@@ -15,9 +16,9 @@ function App() {
   const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
   const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network is OP
-  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState('?'); // Store the total staked globally
-  const [totalStakedLocal, setTotalStakedLocal] = useState('?'); // Store the total staked on the current network
-  const [userTotalStakedLocal, setUserTotalStakedLocal] = useState('?'); // Store the total staked by the user on the current network
+  const [totalStakedOnOmni, setTotalStakedOnOmni] = useState(''); // Store the total staked globally
+  const [totalStakedLocal, setTotalStakedLocal] = useState(''); // Store the total staked on the current network
+  const [userTotalStakedLocal, setUserTotalStakedLocal] = useState(''); // Store the total staked by the user on the current network
 
   // Connect to the user's wallet
   const connectWallet = async () => {
@@ -183,17 +184,11 @@ function App() {
 
       <StakeInput onStake={stake} />
 
-      <div className="stats">
-        <div>
-          <h3>User Info</h3>
-          <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
-        </div>
-        <div>
-          <h3>App Info</h3>
-          <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
-          <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
-        </div>
-      </div>
+      <StakingStats
+            userTotalStakedLocal={userTotalStakedLocal}
+            totalStakedLocal={totalStakedLocal}
+            totalStakedOnOmni={totalStakedOnOmni}
+        />
     </div>
   );
 

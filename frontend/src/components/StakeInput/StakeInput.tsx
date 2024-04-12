@@ -10,9 +10,27 @@ const StakeInput: React.FC<StakeInputProps> = ({ onStake }) => {
 
     const addAmount = (additionalAmount: number) => {
         setAmount((prevAmount) => {
-            // Convert to number, add and convert back to string
-            return (Number(prevAmount) + additionalAmount).toString();
+            // Remove spaces, convert to number, add, and convert back to string with spaces as separators
+            const cleanAmount = prevAmount.replace(/\s/g, '');
+            const newAmount = Number(cleanAmount) + additionalAmount;
+            return formatNumber(newAmount);
         });
+    };
+
+    const formatNumber = (number: string | number | bigint) => {
+        return new Intl.NumberFormat('fr-FR').format(Number(number));
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputNumber = e.target.value.replace(/\s/g, ''); // Remove spaces for calculation
+        if (/^\d*$/.test(inputNumber)) { // Allow only numeric input
+            setAmount(formatNumber(inputNumber));
+        }
+    };
+
+    const handleStake = () => {
+        // Remove spaces before passing the value to onStake
+        onStake(amount.replace(/\s/g, ''));
     };
 
     return (
@@ -26,10 +44,10 @@ const StakeInput: React.FC<StakeInputProps> = ({ onStake }) => {
                     <input
                         type="text"
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        onChange={handleInputChange}
                         placeholder="# LocalTokens"
                     />
-                    <button onClick={() => onStake(amount)}>Stake</button>
+                    <button onClick={handleStake}>Stake</button>
                 </div>
                 <div className="quick-add-buttons">
                     <button onClick={() => addAmount(10)}>+10</button>
