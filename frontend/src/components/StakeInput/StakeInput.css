@@ -1,36 +1,76 @@
 .stake-container {
-    border: 2px solid #000000;
-    padding: 20px;
+    border: transparent;
+    padding: 0 60px 0;
     margin: 20px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
 }
 
 .stake-header {
-    font-size: 40px;
+    order: 1;
+    font-size: 50px;
     text-align: left;
+    width: 420px;
+}
+
+.stake-input {
+    order: 2;
+    margin: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .input-group {
-    margin: 15px;
+    order: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0 0;
+    width: 30%;
 }
 
 .input-group input {
-    margin-left: 10px;
-    margin-right: 10px;
+    flex-grow: 1;
+    margin: 0 10px;
     padding: 10px;
-    border: 1px solid #000000;
-    border-radius: 10px;
+    border: transparent;
+    font-size: 75px;
+    font-weight: 200;
+    width: 400px;
+    font-family: 'Manrope', sans-serif;
+    text-align: center;
+}
+
+.input-group input:focus {
+    outline: none;
+}
+
+.input-group input::placeholder {
+    font-size: 60px;
+    font-weight: 200;
+    font-family: 'Manrope', sans-serif;
+    text-align: center;
 }
 
 .input-group button {
     padding: 10px;
     cursor: pointer;
+    font-size: 20px;
+}
+
+.quick-add-buttons {
+    order: 3;
+    display: flex;
+    justify-content: center;
 }
 
 .quick-add-buttons button {
-    margin-left: 5px;
-    margin-right: 10px;
+    margin: 5px 10px;
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 18px;
 }

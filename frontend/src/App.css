@@ -11,6 +11,8 @@ h2 {
 
 button {
     background-color: white;
+    font-weight: 300;
+    font-family: 'Manrope', sans-serif;
     color: black;
     border: 1px solid #000000;
     border-radius: 5px;

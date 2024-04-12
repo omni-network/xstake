@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
         <button className="change-network" onClick={handleNetworkChange}>Change Network</button>
         <button className="connect-wallet" onClick={connectWallet}>
-          {currentAccount ? `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}` : 'Connect Wallet'}
+          {currentAccount ? `${currentAccount.substring(0, 7)}...${currentAccount.substring(currentAccount.length - 5)}` : 'Connect Wallet'}
         </button>
       </div>
     </nav>
