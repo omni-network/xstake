@@ -11,11 +11,14 @@ interface StakingStatsProps {
 function formatNumber(numberString: string): string {
     const value = parseFloat(numberString); // Convert string to number
     if (value >= 1000 && value < 1000000) {
-        return (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1) + 'K'; // Round to nearest thousand with one decimal place if needed
+        const formattedValue = (value / 1000).toFixed(value % 1000 === 0 ? 0 : 1); // Round to nearest thousand with one decimal place if needed
+        return formattedValue.replace('.0', '') + 'K'; // Remove ".0" if present and append 'K'
     } else if (value >= 1000000 && value < 1000000000) {
-        return (value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1) + 'M'; // Round to nearest million with one decimal place if needed
+        const formattedValue = (value / 1000000).toFixed(value % 1000000 === 0 ? 0 : 1); // Round to nearest million with one decimal place if needed
+        return formattedValue.replace('.0', '') + 'M'; // Remove ".0" if present and append 'M'
     } else if (value >= 1000000000) {
-        return (value / 1000000000).toFixed(value % 1000000000 === 0 ? 0 : 1) + 'B'; // Round to nearest billion with one decimal place if needed
+        const formattedValue = (value / 1000000000).toFixed(value % 1000000000 === 0 ? 0 : 1); // Round to nearest billion with one decimal place if needed
+        return formattedValue.replace('.0', '') + 'B'; // Remove ".0" if present and append 'B'
     }
     return value.toString(); // Directly return the value if less than 1000
 }
