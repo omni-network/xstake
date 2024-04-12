@@ -1,0 +1,23 @@
+.stats-container {
+    display: flex;
+    justify-content: center; /* Equal spacing across the container */
+    text-align: center; /* Center-aligns the text */
+    align-items: center; /* Vertically centers the content in each div */
+    padding: 10px 140px; /* Adds padding around the container */
+}
+
+.stats-container > div {
+    flex: 1; /* Each stat block takes equal width */
+}
+
+.stats-container > div > h3 {
+    margin: 10px 0; /* Adds space above and below the h3 */
+    font-size: 100px; /* Larger font size for the number */
+    font-weight: 200; /* Makes the number bold */
+}
+
+.stats-container > div > p {
+    margin: 5px 0; /* Smaller margin for the paragraph */
+    font-size: 18px; /* Smaller font size for the description */
+    font-weight: 200; /* Lighter font weight for the description */
+}
