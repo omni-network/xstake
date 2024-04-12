@@ -6,8 +6,9 @@ import localTokenAbi from './abis/LocalToken.json';
 import { networks } from './constants/networks';
 
 import Navbar from './components/Navbar/Navbar';
+import StakeInput from './components/StakeInput/StakeInput';
 
-import './App.css'; // Or './App.scss' if using SCSS
+import './App.css';
 
 
 function App() {
@@ -45,16 +46,16 @@ function App() {
       (window as any).ethereum.request({
         method: "wallet_addEthereumChain",
         params: [{
-            chainId: ethers.toBeHex(chainId),
-            rpcUrls: [networks[network].rpcUrl],
-            chainName: networks[network].name,
-            nativeCurrency: {
-                name: "ETH",
-                symbol: "ETH",
-                decimals: 18
-            },
+          chainId: ethers.toBeHex(chainId),
+          rpcUrls: [networks[network].rpcUrl],
+          chainName: networks[network].name,
+          nativeCurrency: {
+            name: "ETH",
+            symbol: "ETH",
+            decimals: 18
+          },
         }]
-    });
+      });
       setCurrentNetwork(network);
     } catch (error) {
       console.error(error);
@@ -104,7 +105,7 @@ function App() {
     try {
       const provider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
       const globalManagerContract = getGlobalManagerContract(provider);
-    
+
       const totalStaked = await globalManagerContract.getTotalStake();
       setTotalStakedOnOmni(ethers.formatEther(totalStaked));
     } catch (error) {
@@ -143,13 +144,13 @@ function App() {
     }
   }
 
-  useEffect(() => {   
-     getTotalStakedLocal();
+  useEffect(() => {
+    getTotalStakedLocal();
     if (!currentAccount) {
       return;
     }
     getUserTotalStakedLocal();
-  }, [currentAccount, currentNetwork]); 
+  }, [currentAccount, currentNetwork]);
 
   useEffect(() => {
     getTotalStakedLocal();
@@ -180,20 +181,17 @@ function App() {
         connectWallet={connectWallet}
       />
 
-      <br/>
-      <div>
-        <input type="text" placeholder="# of LocalTokens" id="stakeAmount" />
-        <button onClick={() => stake((document.getElementById('stakeAmount') as HTMLInputElement)?.value)}>Stake</button>
-        <div className="stats">
-          <div>
-            <h3>User Info</h3>
-            <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
-          </div>
-          <div>
-            <h3>App Info</h3>
-            <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
-            <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
-          </div>
+      <StakeInput onStake={stake} />
+
+      <div className="stats">
+        <div>
+          <h3>User Info</h3>
+          <p>Staked on this Network: {userTotalStakedLocal} LocalTokens</p>
+        </div>
+        <div>
+          <h3>App Info</h3>
+          <p>Staked on this Network: {totalStakedLocal} LocalTokens</p>
+          <p>Staked Globally: {totalStakedOnOmni} LocalTokens</p>
         </div>
       </div>
     </div>

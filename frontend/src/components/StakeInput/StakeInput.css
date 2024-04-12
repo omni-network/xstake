@@ -1,0 +1,36 @@
+.stake-container {
+    border: 2px solid #000000;
+    padding: 20px;
+    margin: 20px;
+    text-align: center;
+}
+
+.stake-header {
+    font-size: 40px;
+    text-align: left;
+}
+
+.input-group {
+    margin: 15px;
+}
+
+.input-group input {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 10px;
+    border: 1px solid #000000;
+    border-radius: 10px;
+}
+
+.input-group button {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.quick-add-buttons button {
+    margin-left: 5px;
+    margin-right: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}

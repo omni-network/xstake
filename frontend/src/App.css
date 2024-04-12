@@ -12,7 +12,8 @@ h2 {
 button {
     background-color: white;
     color: black;
-    border: none;
+    border: 1px solid #000000;
+    border-radius: 5px;
     padding: 10px 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -21,10 +22,4 @@ button {
 button:hover {
     background-color: black;
     color: white;
-}
-
-input[type="text"] {
-    border: 2px solid black;
-    padding: 10px;
-    color: black;
 }
