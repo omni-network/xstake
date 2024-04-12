@@ -15,18 +15,18 @@ export const networks: Networks = {
   omni: {
     name: "Omni Test",
     rpcUrl: "http://localhost:8001",
-    globalManagerContractAddress: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    globalManagerContractAddress: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
   },
   op: {
     name: "Optimism Test Rollup",
     rpcUrl: "http://localhost:8002",
-    localTokenContractAddress: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    stakeContractAddress: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    localTokenContractAddress: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+    stakeContractAddress: "0x9A676e781A523b5d0C0e43731313A708CB607508",
   },
   arb: {
     name: "Arbitrum Test Rollup",
     rpcUrl: "http://localhost:8003",
-    localTokenContractAddress: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    stakeContractAddress: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    localTokenContractAddress: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    stakeContractAddress: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
   }
 };

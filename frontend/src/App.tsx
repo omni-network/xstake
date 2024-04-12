@@ -8,9 +8,9 @@ import { networks } from './constants/networks';
 import Navbar from './components/Navbar/Navbar';
 import StakeInput from './components/StakeInput/StakeInput';
 import StakingStats from './components/StakingStats/StakingStats';
+import LoadingModal from './components/LoadingModal/LoadingModal';
 
 import './App.css';
-
 
 function App() {
   const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
@@ -19,6 +19,7 @@ function App() {
   const [totalStakedOnOmni, setTotalStakedOnOmni] = useState(''); // Store the total staked globally
   const [totalStakedLocal, setTotalStakedLocal] = useState(''); // Store the total staked on the current network
   const [userTotalStakedLocal, setUserTotalStakedLocal] = useState(''); // Store the total staked by the user on the current network
+  const [modalStatus, setModalStatus] = useState(''); // Controls modal status
 
   // Connect to the user's wallet
   const connectWallet = async () => {
@@ -85,7 +86,10 @@ function App() {
         console.log("Approving stake contract to spend tokens");
         const totalSupply = await localTokenContract.totalSupply();
         const aTx = await localTokenContract.approve(stakeAddress, ethers.parseEther(totalSupply.toString()));
+        setModalStatus('loading'); // Show modal when transaction is being processed
         await aTx.wait();
+        setModalStatus('complete'); // Hide modal when transaction is completed
+        setTimeout(() => setModalStatus(''), 2000); // Close modal after 2 seconds
         const newAllowance = await localTokenContract.allowance(currentAccount, stakeAddress);
         console.log("New allowance:", newAllowance.toString());
       }
@@ -94,8 +98,10 @@ function App() {
       const xcallFee = ethers.parseEther("0.01");
 
       const sTx = await stakeContract.stake(tokenAmount, { value: xcallFee });
+      setModalStatus('loading'); // Show modal when transaction is being processed
       await sTx.wait();
-      alert(`Staked successfully on ${currentNetwork}`);
+      setModalStatus('complete'); // Hide modal when transaction is completed
+      setTimeout(() => setModalStatus(''), 2000); // Close modal after 2 seconds
       setStakeVal(stakeVal + parseInt(amount));
     } catch (error) {
       console.error("Failed to stake:", (error as any).message);
@@ -189,6 +195,9 @@ function App() {
             totalStakedLocal={totalStakedLocal}
             totalStakedOnOmni={totalStakedOnOmni}
         />
+
+      <LoadingModal isOpen={!!modalStatus} status={modalStatus} />
+
     </div>
   );
 
