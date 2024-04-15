@@ -28,7 +28,7 @@ This repository contains an advanced example of a cross-chain dApp for staking t
 ├── test # Tests for contracts
 | ├── GlobalManager.t.sol
 | └── LocalStake.t.sol
-└── foundry.toml # Foundry build and test configuration
+├── foundry.toml # Foundry build and test configuration
 └── ...
 ```
 
