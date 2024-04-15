@@ -4,7 +4,7 @@
 # gather env vars
 source script/bash/env.sh
 
-# Deployed contract addresses
+# Deploy contracts
 source script/bash/deploy.sh
 
 # Add chains and contracts to the Global Manager contract
