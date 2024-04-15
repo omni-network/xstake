@@ -1,21 +1,18 @@
-# Cross-Rollup Staking Example Frontend
+# Omni Cross-Rollup Staking Example Frontend
 
-This project is the frontend for a decentralized application (dApp) that allows users to stake tokens for rewards, governance, and yield across multiple rollup networks. The dApp is built with React and leverages Ethereum smart contracts through Ethers.js.
+This is the frontend for a cross-chain dApp that allows users to stake tokens across multiple rollup networks. The dApp is built with React and interacts with three EVM Networks, two networks have the staking contracts and ERC20 contracts deployed to them and the last is the Omni EVM network that manages state globally.
 
 ## Overview
 
 The frontend is a user interface that interacts with the `LocalStake`, `GlobalManager`, and `LocalToken` smart contracts to enable staking on the Omni network. Users can connect their Ethereum wallets, switch networks, and manage their stakes.
 
-![Omni Staking Interface](./path-to-image/image.png)
-
-*Replace the above path with the actual path to the image within your project if needed.*
+![UI](./img/image.png)
 
 ## Features
 
 - **Wallet Connection**: Allows users to connect their MetaMask wallet to interact with the dApp.
 - **Network Switching**: Users can switch between different rollup networks.
 - **Stake Management**: Users can stake and view their current and total stakes on the network.
-- **Responsive Stats Display**: Real-time display of staking statistics, including user-specific and global stakes.
 
 # Project Structure
 
@@ -91,12 +88,3 @@ The ABIs for the `LocalStake`, `GlobalManager`, and `LocalToken` contracts are l
 ## Constants
 
 The src/constants/ directory contains the `networks.ts` file, which holds the configuration for different networks and contract addresses.
-
-## Environment Variables
-
-Ensure you have the following environment variables set:
-
-`REACT_APP_PORTAL_ADDRESS`: Address of the Portal for cross-chain operations.
-`REACT_APP_GLOBAL_MANAGER_CONTRACT_ADDRESS`: Address of the `GlobalManager` contract.
-`REACT_APP_LOCAL_TOKEN_ADDRESS`: Address of the `LocalToken` contract.
-`REACT_APP_GLOBAL_CHAIN_ID`: The global chain ID for the Omni network.
