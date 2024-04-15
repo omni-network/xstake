@@ -8,6 +8,6 @@ import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 contract LocalToken is ERC20 {
     /// @dev Constructor function that initializes the LocalToken contract.
     constructor() ERC20("LocalToken", "LT") {
-        _mint(msg.sender, 1000000 * 10 ** decimals());
+        _mint(msg.sender, 1000000 * 10 ** decimals()); // mints 100M tokens to deploying account balance
     }
 }
