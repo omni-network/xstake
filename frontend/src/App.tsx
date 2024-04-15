@@ -12,7 +12,9 @@ import LoadingModal from './components/LoadingModal/LoadingModal';
 
 import './App.css';
 
+// Main App component where all the state and functions are managed for the dApp
 function App() {
+  // State hooks to store and manage the staking values and status
   const [stakeVal, setStakeVal] = useState(0); // Store the amount to stake
   const [currentAccount, setCurrentAccount] = useState(''); // Store the current connected account
   const [currentNetwork, setCurrentNetwork] = useState('op'); // Default network is OP
@@ -21,7 +23,7 @@ function App() {
   const [userTotalStakedLocal, setUserTotalStakedLocal] = useState(''); // Store the total staked by the user on the current network
   const [modalStatus, setModalStatus] = useState(''); // Controls modal status
 
-  // Connect to the user's wallet
+  // Function to connect to the user's wallet, checking for MetaMask and getting accounts
   const connectWallet = async () => {
     try {
       // Check if MetaMask is installed
@@ -41,7 +43,7 @@ function App() {
     }
   };
 
-  // Request to switch the network
+  // Function to handle network change requests by the user
   const requestNetworkChange = async (network: string) => {
     try {
       const chainId = await getNetworkChainId(network);
@@ -64,6 +66,7 @@ function App() {
     }
   };
 
+  // Function to handle staking operation
   const stake = async (amount: string) => {
     try {
       if (!currentAccount) {
@@ -108,6 +111,7 @@ function App() {
     }
   };
 
+  // Function to fetch the total staked tokens globally from the GlobalManager contract
   const getTotalStaked = async () => {
     try {
       const provider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
@@ -120,6 +124,7 @@ function App() {
     }
   };
 
+  // Function to fetch the total staked tokens on the current local network
   const getTotalStakedLocal = async () => {
     try {
       const provider = new ethers.JsonRpcProvider(networks[currentNetwork].rpcUrl);
@@ -133,6 +138,7 @@ function App() {
     }
   };
 
+  // Function to fetch the total staked tokens on the current local network
   const getUserTotalStakedLocal = async () => {
     try {
       if (!currentAccount) {
@@ -151,6 +157,7 @@ function App() {
     }
   }
 
+  // useEffect hooks to fetch updated staking information on network or account change, and on initial load
   useEffect(() => {
     getTotalStakedLocal();
     if (!currentAccount) {
@@ -177,6 +184,7 @@ function App() {
     getUserTotalStakedLocal();
   }, []);
 
+  // Render function for the React component
   return (
     <div>
 
@@ -201,12 +209,14 @@ function App() {
     </div>
   );
 
+  // Helper function to get the chain ID of a network
   async function getNetworkChainId(network: string) {
     const provider = new ethers.JsonRpcProvider(networks[network].rpcUrl);
     const chainId = (await provider.getNetwork()).chainId;
     return chainId;
   }
 
+  // Helper functions to create contract instances
   function getGlobalManagerContract(provider: ethers.JsonRpcProvider) {
     const globalManagerAddress = networks.omni.globalManagerContractAddress;
     if (!globalManagerAddress) {

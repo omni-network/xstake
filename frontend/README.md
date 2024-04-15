@@ -1,46 +1,102 @@
-# Getting Started with Create React App
+# Cross-Rollup Staking Example Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is the frontend for a decentralized application (dApp) that allows users to stake tokens for rewards, governance, and yield across multiple rollup networks. The dApp is built with React and leverages Ethereum smart contracts through Ethers.js.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+The frontend is a user interface that interacts with the `LocalStake`, `GlobalManager`, and `LocalToken` smart contracts to enable staking on the Omni network. Users can connect their Ethereum wallets, switch networks, and manage their stakes.
 
-### `yarn start`
+![Omni Staking Interface](./path-to-image/image.png)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+*Replace the above path with the actual path to the image within your project if needed.*
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Features
 
-### `yarn test`
+- **Wallet Connection**: Allows users to connect their MetaMask wallet to interact with the dApp.
+- **Network Switching**: Users can switch between different rollup networks.
+- **Stake Management**: Users can stake and view their current and total stakes on the network.
+- **Responsive Stats Display**: Real-time display of staking statistics, including user-specific and global stakes.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Project Structure
 
-### `yarn build`
+```
+├── README.md
+├── package.json
+├── public
+│   ├── favicon.svg
+│   ├── index.html
+│   ├── logo.svg
+│   ├── manifest.json
+│   └── robots.txt
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── abis
+│   │   ├── GlobalManager.json
+│   │   ├── LocalStake.json
+│   │   └── LocalToken.json
+│   ├── components
+│   │   ├── LoadingModal
+│   │   │   ├── LoadingModal.css
+│   │   │   └── LoadingModal.tsx
+│   │   ├── Navbar
+│   │   │   ├── Navbar.css
+│   │   │   └── Navbar.tsx
+│   │   ├── StakeInput
+│   │   │   ├── StakeInput.css
+│   │   │   └── StakeInput.tsx
+│   │   └── StakingStats
+│   │       ├── StakingStats.css
+│   │       └── StakingStats.tsx
+│   ├── constants
+│   │   └── networks.ts
+│   └── index.tsx
+├── tsconfig.json
+└── yarn.lock
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Getting Started
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+To run this project locally, follow these steps:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository:
 
-### `yarn eject`
+    ```sh
+    git clone https://your-repository-url
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+2. Change directory to the repo and install packages with: 
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    ```sh
+    yarn install
+    ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+3. Start the development server:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+    ```sh
+    yarn start
+    ```
 
-## Learn More
+## Components
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `Navbar`: The navigation bar allows the user to connect their wallet and switch networks.
+- `StakeInput`: A component that allows users to input the amount of tokens they wish to stake.
+- `StakingStats`: Displays the staking statistics such as total stakes on the network and the user's stakes.
+- `LoadingModal`: A modal that appears during transaction processing.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Smart Contract ABIs
+
+The ABIs for the `LocalStake`, `GlobalManager`, and `LocalToken` contracts are located in the src/abis/ directory.
+
+## Constants
+
+The src/constants/ directory contains the `networks.ts` file, which holds the configuration for different networks and contract addresses.
+
+## Environment Variables
+
+Ensure you have the following environment variables set:
+
+`REACT_APP_PORTAL_ADDRESS`: Address of the Portal for cross-chain operations.
+`REACT_APP_GLOBAL_MANAGER_CONTRACT_ADDRESS`: Address of the `GlobalManager` contract.
+`REACT_APP_LOCAL_TOKEN_ADDRESS`: Address of the `LocalToken` contract.
+`REACT_APP_GLOBAL_CHAIN_ID`: The global chain ID for the Omni network.
