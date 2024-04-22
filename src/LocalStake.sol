@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.23;
 
-import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
-import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {XApp} from "omni/contracts/src/pkg/XApp.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
+import {GlobalManager} from "./GlobalManager.sol";
 
 /**
  * @title LocalStake Contract
@@ -26,24 +28,30 @@ contract LocalStake is XApp {
      * @notice Token interface for ERC20 interactions
      * @dev ERC20 interface used for token transactions
      */
-    IERC20 public localToken;
+    IERC20 public immutable token;
+
+    /**
+     * @dev Events to register stake and unstake actions
+     */
+    event Staked(address indexed user, uint256 amount);
+    event Unstaked(address indexed user, uint256 amount);
 
     /**
      * @dev Initializes a new LocalStake contract with necessary addresses and identifiers
      * @param portal                 Address of the portal or relay used for cross-chain communication
      * @param _globalManagerContract Address of the global management contract
      * @param _globalChainId         Chain ID for the Omni Network, specific chain for state coordination
-     * @param _localToken            Address of the ERC20 token used for staking
+     * @param _token                 Address of the ERC20 token used for staking
      */
     constructor(
         address portal, 
         address _globalManagerContract,
         uint64 _globalChainId,
-        address _localToken
+        address _token
     ) XApp(portal) {
         globalManagerContract = _globalManagerContract;
         globalChainId = _globalChainId;
-        localToken = IERC20(_localToken);
+        token = IERC20(_token);
     }
 
     /**
@@ -52,15 +60,16 @@ contract LocalStake is XApp {
      * @dev Requires a value to cover xcall fees and checks for a minimum amount of tokens to stake
      */
     function stake(uint256 amount) external payable {
-        require(amount > 0, "LocalStake: must stake more than 0");
-        require(msg.value > 0, "LocalStake: attach value for xcall fee");
+        require(amount > 0, "LocalStake: stake more than 0");
 
-        require(localToken.transferFrom(msg.sender, address(this), amount), "LocalStake: transfer failed");
+        require(token.transferFrom(msg.sender, address(this), amount), "LocalStake: transfer failed");
+
+        emit Staked(msg.sender, amount);
 
         xcall(
             globalChainId, 
             globalManagerContract, 
-            abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  amount)
+            abi.encodeWithSelector(GlobalManager.addStake.selector, msg.sender, amount)
         );
     }
 
@@ -70,11 +79,11 @@ contract LocalStake is XApp {
      * @dev Requires a value to cover xcall fees which are doubled for the xunstake process
      */
     function unstake(uint256 amount) external payable {
-        require(msg.value > 0, "LocalStake: attach value for xcall fee");
+        require(msg.value > 0, "LocalStake: no xcall fee");
 
-        bytes memory data = abi.encodeWithSignature("removeStake(address,uint256)", msg.sender,  amount);
+        bytes memory data = abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount);
         uint256 portalFee = feeFor(globalChainId, data) * 2; 
-        require(msg.value > portalFee, "LocalStake: insufficient value for xcall fee");
+        require(msg.value > portalFee, "LocalStake: little xcall fee");
 
         xcall(globalChainId, globalManagerContract, data);
     }
@@ -90,6 +99,9 @@ contract LocalStake is XApp {
         require(xmsg.sourceChainId == globalChainId, "LocalStake: invalid source chain");
         require(xmsg.sender == globalManagerContract, "LocalStake: invalid sender");
 
-        require(localToken.transfer(user, amount), "LocalStake: transfer failed");
+        require(token.transfer(user, amount), "LocalStake: transfer failed");
+
+        emit Unstaked(user, amount);
     }
 }
+

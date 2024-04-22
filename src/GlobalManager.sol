@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.25;
 
-import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import {XApp} from "omni/contracts/src/pkg/XApp.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
+
+import {LocalStake} from "./LocalStake.sol"; 
 
 /**
  * @title GlobalManager contract
@@ -76,7 +78,7 @@ contract GlobalManager is XApp, Ownable {
         xcall(
             xmsg.sourceChainId, 
             xmsg.sender, 
-            abi.encodeWithSignature("xunstake(address,uint256)", user, amount)
+            abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount)
         );
     }
 

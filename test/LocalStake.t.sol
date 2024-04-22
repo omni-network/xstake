@@ -8,7 +8,7 @@ import {GlobalManager} from "../src/GlobalManager.sol";
 import {LocalToken} from "../src/LocalToken.sol";
 
 // Test contract for staking operations
-contract SimpleStakeTest is Test {
+contract LocalStakeTest is Test {
     LocalStake localStake;           // LocalStake contract instance
     MockPortal portal;               // MockPortal for simulation
     GlobalManager globalManager;     // GlobalManager contract instance
@@ -77,7 +77,7 @@ contract SimpleStakeTest is Test {
         vm.deal(user, stakeAmount);  // Provide ether to the user
         vm.startPrank(user);  // Start simulation as the user
         localToken.approve(address(localStake), stakeAmount);  // User approves the stake amount
-        vm.expectRevert("LocalStake: insufficient value for xcall fee");  // Expect revert due to insufficient fee
+        vm.expectRevert("XApp: insufficient funds");  // Expect revert due to insufficient fee
         localStake.stake{value: feeAmount}(stakeAmount);  // Attempt to stake with insufficient fee
         vm.stopPrank();  // End simulation
     }
