@@ -21,7 +21,7 @@ contract GlobalTest is Test {
         uint64 chainId = 1;  // Chain ID to be used
         address contractAddress = address(0x123);  // Example contract address
         globalManager.addChainContract(chainId, contractAddress);  // Adds the contract address to the specified chain
-        assertEq(globalManager.chainIdToContract(chainId), contractAddress);  // Asserts that the contract address matches the stored value
+        assertEq(globalManager.contractOn(chainId), contractAddress);  // Asserts that the contract address matches the stored value
     }
 
     // Test adding a stake to a non-existent chain
@@ -44,7 +44,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);  // Adds a chain contract
         vm.expectRevert("GlobalManager: invalid sender");  // Expecting revert due to invalid sender
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userToChainIdToStake(user, chainId), 0);  // Ensures no stake is recorded
+        assertEq(globalManager.stakeOn(user, chainId), 0);  // Ensures no stake is recorded
     }
 
     // Test successful stake addition
@@ -56,7 +56,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);  // Adds a chain contract
         vm.prank(contractAddress);  // Simulates a call from the contract
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userToChainIdToStake(user, chainId), amount);  // Checks the stake amount is added correctly
+        assertEq(globalManager.stakeOn(user, chainId), amount);  // Checks the stake amount is added correctly
     }
 
     // Test stake removal
@@ -69,7 +69,7 @@ contract GlobalTest is Test {
         globalManager.addChainContract(chainId, contractAddress);  // Adds a chain contract
         vm.prank(contractAddress);  // Simulates a call from the contract
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount));
-        assertEq(globalManager.userToChainIdToStake(user, chainId), amount);  // Asserts the stake has been added
+        assertEq(globalManager.stakeOn(user, chainId), amount);  // Asserts the stake has been added
         vm.deal(address(globalManager), 1 ether);  // Funds the GlobalManager with 1 ether
         vm.expectCall(
             address(portal),
@@ -98,6 +98,6 @@ contract GlobalTest is Test {
         );
         vm.prank(contractAddress);  // Simulates a call from the contract
         portal.mockXCall(chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount));
-        assertEq(globalManager.userToChainIdToStake(user, chainId), 0);  // Asserts the stake has been removed
+        assertEq(globalManager.stakeOn(user, chainId), 0);  // Asserts the stake has been removed
     }
 }

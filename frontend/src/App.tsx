@@ -117,7 +117,7 @@ function App() {
       const provider = new ethers.JsonRpcProvider(networks['omni'].rpcUrl);
       const globalManagerContract = getGlobalManagerContract(provider);
 
-      const totalStaked = await globalManagerContract.getTotalStake();
+      const totalStaked = await globalManagerContract.totalStake();
       setTotalStakedOnOmni(ethers.formatEther(totalStaked));
     } catch (error) {
       console.error("Failed to fetch total staked:", (error as any).message);
