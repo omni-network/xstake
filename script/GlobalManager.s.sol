@@ -12,13 +12,13 @@ contract DeployGlobalManager is Script {
         // Fetch the portal address from environment variables; the portal is used for cross-chain interactions
         address portalAddress = vm.envAddress("PORTAL_ADDRESS");
 
-        vm.startBroadcast();  // Start broadcasting transactions to the network
+        vm.startBroadcast(); // Start broadcasting transactions to the network
 
         // Create a new instance of the GlobalManager contract
         GlobalManager globalManager = new GlobalManager(portalAddress);
         // Log the deployment address to the console
         console.log("Deployed GlobalManager at:", address(globalManager));
 
-        vm.stopBroadcast();  // Stop broadcasting transactions
+        vm.stopBroadcast(); // Stop broadcasting transactions
     }
 }

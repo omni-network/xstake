@@ -2,9 +2,9 @@
 pragma solidity ^0.8.25;
 
 import {XApp} from "omni/contracts/src/pkg/XApp.sol";
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-import {LocalStake} from "./LocalStake.sol"; 
+import {LocalStake} from "./LocalStake.sol";
 
 /**
  * @title GlobalManager contract
@@ -75,11 +75,7 @@ contract GlobalManager is XApp, Ownable {
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 
-        xcall(
-            xmsg.sourceChainId, 
-            xmsg.sender, 
-            abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount)
-        );
+        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount));
     }
 
     /**

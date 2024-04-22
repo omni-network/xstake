@@ -3,6 +3,8 @@ pragma solidity ^0.8.23;
 
 import {XApp} from "omni/contracts/src/pkg/XApp.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+
 
 import {GlobalManager} from "./GlobalManager.sol";
 
@@ -11,7 +13,7 @@ import {GlobalManager} from "./GlobalManager.sol";
  * @notice A contract for staking tokens locally on a rollup chain
  * @dev Contract uses cross-chain communication for stake coordination
  */
-contract LocalStake is XApp {
+contract LocalStake is XApp, Ownable {
     /**
      * @notice Chain ID of the global network
      * @dev State variable to store the Omni Network's specific chain ID
@@ -43,12 +45,7 @@ contract LocalStake is XApp {
      * @param _globalChainId         Chain ID for the Omni Network, specific chain for state coordination
      * @param _token                 Address of the ERC20 token used for staking
      */
-    constructor(
-        address portal, 
-        address _globalManagerContract,
-        uint64 _globalChainId,
-        address _token
-    ) XApp(portal) {
+    constructor(address portal, address _globalManagerContract, uint64 _globalChainId, address _token) XApp(portal) Ownable(msg.sender) {
         globalManagerContract = _globalManagerContract;
         globalChainId = _globalChainId;
         token = IERC20(_token);
@@ -67,8 +64,8 @@ contract LocalStake is XApp {
         emit Staked(msg.sender, amount);
 
         xcall(
-            globalChainId, 
-            globalManagerContract, 
+            globalChainId,
+            globalManagerContract,
             abi.encodeWithSelector(GlobalManager.addStake.selector, msg.sender, amount)
         );
     }
@@ -76,16 +73,28 @@ contract LocalStake is XApp {
     /**
      * @notice Unstakes tokens by initiating a removal request via cross-chain communication
      * @param amount The amount of tokens to be unstaked
+     * @param gasLimit The gas limit for the cross-chain call
      * @dev Requires a value to cover xcall fees which are doubled for the xunstake process
      */
-    function unstake(uint256 amount) external payable {
-        require(msg.value > 0, "LocalStake: no xcall fee");
+    function unstake(uint256 amount, uint64 gasLimit) external payable {
+        // Ensure gasLimit is within acceptable ranges
+        require(gasLimit >= 50_000, "LocalStake: gasLimit too low");
+        require(gasLimit <= 6_000_000, "LocalStake: gasLimit too high");
 
-        bytes memory data = abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount);
-        uint256 portalFee = feeFor(globalChainId, data) * 2; 
-        require(msg.value > portalFee, "LocalStake: little xcall fee");
+        // Unstake on global manager
+        uint256 baseFee = xcall(
+            globalChainId,
+            globalManagerContract,
+            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount),
+            gasLimit
+        );
 
-        xcall(globalChainId, globalManagerContract, data);
+        // Fee for this.xunstake callback
+        uint256 callbackFee =
+            feeFor(uint64(block.chainid), abi.encodeWithSelector(this.xunstake.selector, msg.sender, amount), gasLimit);
+
+        // Require that user cover both base and callback fees
+        require(msg.value >= baseFee + callbackFee, "LocalStake: insufficient fee");
     }
 
     /**
@@ -103,5 +112,18 @@ contract LocalStake is XApp {
 
         emit Unstaked(user, amount);
     }
-}
 
+    /**
+     * @notice Withdraws the entire ETH balance of this contract to a specified destination
+     * @param destination The address to which the ETH will be sent
+     * @dev Can only be called by the contract owner. Ensures that the destination is not the zero address.
+     */
+    function withdraw(address destination) external onlyOwner {
+        require(destination != address(0), "LocalStake: invalid destination");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "LocalStake: no ETH balance");
+
+        (bool sent, ) = destination.call{value: balance}("");
+        require(sent, "LocalStake: Failed send ETH");
+    }
+}
