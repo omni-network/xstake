@@ -150,7 +150,7 @@ function App() {
       const globalManagerContract = getGlobalManagerContract(omniProvider);
       const chainId = await getNetworkChainId(currentNetwork);
 
-      const userTotalStaked = await globalManagerContract.getUserStakeOnChain(currentAccount, chainId);
+      const userTotalStaked = await globalManagerContract.stakeOn(currentAccount, chainId);
       setUserTotalStakedLocal(ethers.formatEther(userTotalStaked));
     } catch (error) {
       console.error("Failed to fetch user local staked:", (error as any).message);
