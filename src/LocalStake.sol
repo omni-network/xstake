@@ -57,11 +57,11 @@ contract LocalStake is XApp {
 
         require(localToken.transferFrom(msg.sender, address(this), amount), "LocalStake: transfer failed");
 
-        bytes memory data = abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  amount);
-        uint256 portalFee = feeFor(globalChainId, data);
-        require(msg.value > portalFee, "LocalStake: insufficient value for xcall fee");
-
-        xcall(globalChainId, globalManagerContract, data);
+        xcall(
+            globalChainId, 
+            globalManagerContract, 
+            abi.encodeWithSignature("addStake(address,uint256)", msg.sender,  amount)
+        );
     }
 
     /**

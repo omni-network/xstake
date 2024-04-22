@@ -70,14 +70,14 @@ contract GlobalManager is XApp, Ownable {
         require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
         require(stakeOn[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
 
-        bytes memory data = abi.encodeWithSignature("xunstake(address,uint256)", user, amount);
-        uint256 fee = feeFor(xmsg.sourceChainId, data);
-        require(address(this).balance >= fee, "GlobalManager: insufficient fee");
-
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 
-        xcall(xmsg.sourceChainId, xmsg.sender, data);
+        xcall(
+            xmsg.sourceChainId, 
+            xmsg.sender, 
+            abi.encodeWithSignature("xunstake(address,uint256)", user, amount)
+        );
     }
 
     /**
