@@ -2,19 +2,14 @@
 pragma solidity ^0.8.25;
 
 import {XApp} from "../lib/omni/contracts/src/pkg/XApp.sol";
+import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
  * @title GlobalManager contract
  * @notice Manages global operations and interactions with other contracts
- * @dev Deployed on Omni
+ * @dev Deployed on Omni, using Ownable for ownership management
  */
-contract GlobalManager is XApp {
-    /**
-     * @notice Owner of the contract
-     * @dev State variable to store the owner's address
-     */
-    address public owner;
-
+contract GlobalManager is XApp, Ownable {
     /**
      * @notice Maps chain IDs to contract addresses
      * @dev State mapping of chain IDs to addresses for cross-chain interactions
@@ -34,20 +29,17 @@ contract GlobalManager is XApp {
     uint256 public totalStake;
 
     /**
-     * @dev Initializes the contract with the specified portal address and sets the owner
+     * @dev Initializes the contract with the specified portal address
      * @param portal The portal address used for initialization
      */
-    constructor(address portal) XApp(portal) {
-        owner = msg.sender;
-    }
+    constructor(address portal) XApp(portal) Ownable(msg.sender) {}
 
     /**
      * @notice Adds a contract address for a specific chain ID
      * @param chainId         The ID of the chain where the contract is deployed
      * @param contractAddress The address of the contract to be mapped
      */
-    function addChainContract(uint64 chainId, address contractAddress) external {
-        require(msg.sender == owner, "GlobalManager: only owner");
+    function addChainContract(uint64 chainId, address contractAddress) external onlyOwner {
         contractOn[chainId] = contractAddress;
     }
 
