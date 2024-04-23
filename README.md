@@ -149,18 +149,18 @@ This will deploy the contracts according to the configured environment and add t
 
 ### Run Networks and Omni Locally
 
-To run the app locally make sure you have a running version of `devnet`. To run `devnet`:
+To run the app locally make sure you have a running version of the `omni` CLI that supports the `devnet start` command and start the local devnet with:
 
-1. First clone `https://github.com/omni-network/omni`
-2. then run `make build-docker`
-3. then run `make devnet-deploy`
+```sh
+omni devnet start
+```
 
 ### Contracts Setup
 
 Having run this, you can find the address for the Portal contracts by running:
 
 ```bash
-cat e2e/runs/devnet1/validator01/config/network.json
+omni devnet info
 ```
 
 Add this Portal contract address to `script/bash/env.sh`.
