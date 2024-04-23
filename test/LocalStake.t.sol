@@ -80,7 +80,7 @@ contract LocalStakeTest is Test {
     function testUnstakeWithSufficientGas() public {
         uint256 unstakeAmount = 100 ether;
         uint256 feeAmount = 1000 gwei;
-        uint64 gasLimit = 500000;  // A typical gas limit sufficient for the operation
+        uint64 gasLimit = 500_000;  // A typical gas limit sufficient for the operation
         address user = address(0xf00);
 
         vm.deal(user, 3 * feeAmount); // Ensuring sufficient ether for fees
@@ -92,11 +92,10 @@ contract LocalStakeTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes,uint64)",
+                "xcall(uint64,address,bytes)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("removeStake(address,uint256)", user, unstakeAmount),
-                gasLimit
+                abi.encodeWithSignature("removeStake(address,uint256,uint64)", user, unstakeAmount, gasLimit)
             )
         );
         localStake.unstake{value: feeAmount}(unstakeAmount, gasLimit);

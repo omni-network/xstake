@@ -4,6 +4,8 @@ pragma solidity ^0.8.25;
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
 import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
+import {LocalStake} from "../src/LocalStake.sol";
+import {LocalToken} from "../src/LocalToken.sol";
 
 /**
  * @title Test suite for the GlobalManager functionality
@@ -75,6 +77,8 @@ contract GlobalTest is Test {
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
+        uint64 gasLimit = 100_000;
+
         vm.deal(contractAddress, 1 ether);
         globalManager.addChainContract(chainId, contractAddress);
         vm.prank(contractAddress);
@@ -87,22 +91,84 @@ contract GlobalTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "feeFor(uint64,bytes)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount)
+                "feeFor(uint64,bytes,uint64)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount), gasLimit
             )
         );
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 chainId,
                 contractAddress,
-                abi.encodeWithSignature("xunstake(address,uint256)", user, amount)
+                abi.encodeWithSignature("xunstake(address,uint256)", user, amount),
+                gasLimit
             )
         );
         vm.prank(contractAddress);
         portal.mockXCall(
-            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount)
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount, gasLimit)
         );
         assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
+    }
+
+    /// @dev Gas limit test showing global state can change, but stake can fail to go back to user
+    function testRemoveStakeWithInsufficientGasFails() public {
+        uint256 amount = 100;
+        address user = address(0x123);
+        uint64 chainId = 1;
+        address contractAddress = address(0x123);
+        uint64 insufficientGasLimit = 21_000;
+
+        // initialize basic state for staking contract to show full unstake flow
+        LocalToken localToken = new LocalToken();
+        LocalStake localStake = new LocalStake(
+            address(portal),
+            address(globalManager),
+            chainId,
+            address(localToken)
+        );
+        localToken.transfer(address(localStake), amount);
+
+        // stake using globalManager
+        vm.deal(contractAddress, 1 ether);
+        globalManager.addChainContract(chainId, contractAddress);
+        vm.prank(contractAddress);
+        portal.mockXCall(
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount)
+        );
+        assertEq(globalManager.stakeOn(user, chainId), amount, "Initial stake should be correctly set.");
+
+        // unstake using globalManager
+        vm.deal(address(globalManager), 1 ether); // Ensures sufficient funds for fee handling
+        vm.expectCall(
+            address(portal),
+            abi.encodeWithSignature(
+                "feeFor(uint64,bytes,uint64)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount), insufficientGasLimit
+            )
+        );
+        vm.expectCall(
+            address(portal),
+            abi.encodeWithSignature(
+                "xcall(uint64,address,bytes,uint64)",
+                chainId,
+                contractAddress,
+                abi.encodeWithSignature("xunstake(address,uint256)", user, amount),
+                insufficientGasLimit
+            )
+        );
+        vm.prank(contractAddress);
+        portal.mockXCall(
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount, insufficientGasLimit)
+        );
+
+        // user should have modified state on globalManager, no stake left
+        assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
+
+        // call fails with gasLimit that is too low for its execution on dest chain
+        vm.startPrank(address(portal));
+        vm.expectRevert();
+        localStake.xunstake{ gas: insufficientGasLimit }(user, amount);
+
+        assertEq(localToken.balanceOf(address(localStake)), amount, "Staking contract should still hold user stake");
     }
 }

@@ -85,8 +85,7 @@ contract LocalStake is XApp, Ownable {
         uint256 baseFee = xcall(
             globalChainId,
             globalManagerContract,
-            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount),
-            gasLimit
+            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount, gasLimit)
         );
 
         // Fee for this.xunstake callback
