@@ -14,7 +14,7 @@ echo "\n"
 echo "============================================================="
 echo "Approve the LocalStake"
 echo "============================================================="
-cast send $OP_LOCAL_TOKEN_ADDRESS "approve(address,uint256)" $OP_LOCAL_STAKE_ADDRESS 100000000000000000000000 --private-key $PRIVATE_KEY --rpc-url $OP_RPC_URL
+cast send $OP_LOCAL_TOKEN_ADDRESS "approve(address,uint256)" $OP_LOCAL_STAKE_ADDRESS 1ether --private-key $PRIVATE_KEY --rpc-url $OP_RPC_URL
 echo "============================================================="
 
 # Add OP chain ID and stake contract address to the Global Manager contract
@@ -30,26 +30,25 @@ echo "\n"
 echo "============================================================="
 echo "Stake Tokens"
 echo "============================================================="
-cast send $OP_LOCAL_STAKE_ADDRESS "stake(uint256)" 100000000000000000000000 --value 0.01ether --private-key $PRIVATE_KEY --rpc-url $OP_RPC_URL
+cast send $OP_LOCAL_STAKE_ADDRESS "stake(uint256)" 1ether --value 0.01ether --private-key $PRIVATE_KEY --rpc-url $OP_RPC_URL
 echo "============================================================="
 
 echo "\n"
-echo "============================================================="
 echo "Querying Balances..."
-echo "============================================================="
 # Check the ERC-20 balance of the LocalStake contract
 TOKEN_BALANCE_HEX=$(cast call $OP_LOCAL_TOKEN_ADDRESS "balanceOf(address)" $OP_LOCAL_STAKE_ADDRESS --rpc-url $OP_RPC_URL)
+TOKEN_BALANCE_DEC=$(cast to-dec $TOKEN_BALANCE_HEX)
+TOKEN_BALANCE=$(cast to-unit $TOKEN_BALANCE_DEC ether)
 
 sleep 5
 # Query the total staked amount from the GlobalManager contract on Omni
-TOTAL_STAKED_HEX=$(cast call $GLOBAL_MANAGER_CONTRACT_ADDRESS "getTotalStake()" --rpc-url $OMNI_RPC_URL)
+TOTAL_STAKED_HEX=$(cast call $GLOBAL_MANAGER_CONTRACT_ADDRESS "totalStake()" --rpc-url $OMNI_RPC_URL)
+TOTAL_STAKED_DEC=$(cast to-dec $TOTAL_STAKED_HEX)
+TOTAL_STAKED=$(cast to-unit $TOTAL_STAKED_DEC ether)
 
-echo "\n"
 echo "============================================================="
 echo "Staking Summary"
 echo "============================================================="
-TOKEN_BALANCE_DEC=$(echo $((16#${TOKEN_BALANCE_HEX#0x})))
-echo "SimpleStake Token Balance in Decimal:     $TOKEN_BALANCE_DEC"
-TOTAL_STAKED_DEC=$(echo $((16#${TOTAL_STAKED_HEX#0x})))
-echo "Omni Mgr Total Staked in Decimal:         $TOTAL_STAKED_DEC"
+echo "SimpleStake Token Balance in Decimal:     $TOKEN_BALANCE"
+echo "Omni Mgr Total Staked in Decimal:         $TOTAL_STAKED"
 echo "============================================================="
