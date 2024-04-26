@@ -61,18 +61,30 @@ contract GlobalManager is XApp, Ownable {
     }
 
     /**
+     * @notice Removes a specified amount of stake for a user on a specific chain
+     * @dev This function is called via a cross-chain call and includes checks for xcall validity and sender authorization
+     * @param user The address of the user from whom the stake is being removed
+     * @param amount The amount of stake to remove
+     */
+    function removeStake(address user, uint256 amount) external xrecv {
+        require(isXCall(), "GlobalManager: only xcall");
+        require(isSupportedChain(xmsg.sourceChainId), "GlobalManager: chain not found");
+        require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
+        require(stakeOn[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
+
+        uint64 gasLimit = 200_000; // max gas to spend in call to delegate unstaking, ensuring success
+
+        _removeStake(user, amount, gasLimit);
+    }
+
+    /**
      * @notice Removes stake for a user on a specific chain
      * @dev Initiates an xcall to execute a stake removal operation
      * @param user   The address of the user removing the stake
      * @param amount The amount of stake to remove
      * @param gasLimit The max amount of gas used by the trx on destination
      */
-    function removeStake(address user, uint256 amount, uint64 gasLimit) external xrecv {
-        require(isXCall(), "GlobalManager: only xcall");
-        require(isSupportedChain(xmsg.sourceChainId), "GlobalManager: chain not found");
-        require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
-        require(stakeOn[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
-
+    function _removeStake(address user, uint256 amount, uint64 gasLimit) internal {
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 

@@ -2,23 +2,62 @@
 pragma solidity ^0.8.25;
 
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
-import {Test, console} from "../lib/forge-std/src/Test.sol";
+import {Test} from "../lib/forge-std/src/Test.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 import {LocalToken} from "../src/LocalToken.sol";
+
+/**
+ * @title Exposed Global Manager Contract for Testing
+ * @notice This contract extends the GlobalManager to expose internal functions for testing purposes.
+ */
+contract ExposedGlobalManager is GlobalManager {
+    constructor(address portal) GlobalManager(portal) {}
+
+    /// @dev This function allows for direct interaction with the internal _removeStake function, 
+    ///      bypassing the usual security checks for demonstration purposes.
+    function exposeRemoveStake(address user, uint256 amount, uint64 gasLimit) public xrecv {
+        require(isXCall(), "GlobalManager: only xcall");
+        require(isSupportedChain(xmsg.sourceChainId), "GlobalManager: chain not found");
+        require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
+        require(stakeOn[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
+
+        _removeStake(user, amount, gasLimit);
+    }
+}
+
+/**
+ * @title Heavy Local Stake Contract for Testing
+ * @notice Extends the LocalStake contract to include gas-intensive operations for testing gas limits and behaviors.
+ */
+contract HeavyLocalStake is LocalStake {
+    constructor(address portal, address _globalManagerContract, uint64 _globalChainId, address _token)
+        LocalStake(portal, _globalManagerContract, _globalChainId, _token) {}
+
+    /// @dev Heavily gas consuming unstake operation for demonstration purposes.
+    function heavyXUnstake(address user, uint256 amount) external {
+        // Introducing heavy computation
+        uint256 dummyComputation = 0;
+        for (uint256 i = 0; i < 1000; i++) {
+            dummyComputation += i;
+        }
+
+        _unstake(user, amount);
+    }
+}
 
 /**
  * @title Test suite for the GlobalManager functionality
  * @dev This contract tests the interaction with the GlobalManager, including chain management and stake handling, using a mock portal for cross-chain simulation.
  */
 contract GlobalTest is Test {
-    GlobalManager globalManager;
+    ExposedGlobalManager globalManager;
     MockPortal portal;
 
     /// @dev Sets up the test environment with GlobalManager and MockPortal
     function setUp() public {
         portal = new MockPortal();
-        globalManager = new GlobalManager(address(portal));
+        globalManager = new ExposedGlobalManager(address(portal));
     }
 
     /// @dev Tests the addition of a contract address to a specific chain ID
@@ -77,7 +116,7 @@ contract GlobalTest is Test {
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        uint64 gasLimit = 100_000;
+        uint64 gasLimit = 50_000;
 
         vm.deal(contractAddress, 1 ether);
         globalManager.addChainContract(chainId, contractAddress);
@@ -106,13 +145,13 @@ contract GlobalTest is Test {
         );
         vm.prank(contractAddress);
         portal.mockXCall(
-            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount, gasLimit)
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount)
         );
         assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
     }
 
     /// @dev Gas limit test showing global state can change, but stake can fail to go back to user
-    function testRemoveStakeWithInsufficientGasFails() public {
+    function testRemoveStakeWithInsufficientGasLimitFails() public {
         uint256 amount = 100;
         address user = address(0x123);
         uint64 chainId = 1;
@@ -121,7 +160,7 @@ contract GlobalTest is Test {
 
         // initialize basic state for staking contract to show full unstake flow
         LocalToken localToken = new LocalToken();
-        LocalStake localStake = new LocalStake(
+        HeavyLocalStake localStake = new HeavyLocalStake(
             address(portal),
             address(globalManager),
             chainId,
@@ -158,16 +197,15 @@ contract GlobalTest is Test {
         );
         vm.prank(contractAddress);
         portal.mockXCall(
-            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount, insufficientGasLimit)
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.exposeRemoveStake.selector, user, amount, insufficientGasLimit)
         );
 
         // user should have modified state on globalManager, no stake left
         assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
 
         // call fails with gasLimit that is too low for its execution on dest chain
-        vm.startPrank(address(portal));
         vm.expectRevert();
-        localStake.xunstake{ gas: insufficientGasLimit }(user, amount);
+        localStake.heavyXUnstake{ gas: insufficientGasLimit }(user, amount);
 
         assertEq(localToken.balanceOf(address(localStake)), amount, "Staking contract should still hold user stake");
     }

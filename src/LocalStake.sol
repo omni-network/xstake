@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.25;
 
 import {XApp} from "omni/contracts/src/pkg/XApp.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -63,37 +63,34 @@ contract LocalStake is XApp, Ownable {
 
         emit Staked(msg.sender, amount);
 
-        xcall(
+        uint256 fee = xcall(
             globalChainId,
             globalManagerContract,
             abi.encodeWithSelector(GlobalManager.addStake.selector, msg.sender, amount)
         );
+
+        require(msg.value >= fee, "LocalStake: user xcall gas fee");
     }
 
     /**
      * @notice Unstakes tokens by initiating a removal request via cross-chain communication
      * @param amount The amount of tokens to be unstaked
-     * @param gasLimit The gas limit for the cross-chain call
      * @dev Requires a value to cover xcall fees which are doubled for the xunstake process
      */
-    function unstake(uint256 amount, uint64 gasLimit) external payable {
-        // Ensure gasLimit is within acceptable ranges
-        require(gasLimit >= 50_000, "LocalStake: gasLimit too low");
-        require(gasLimit <= 6_000_000, "LocalStake: gasLimit too high");
-
+    function unstake(uint256 amount) external payable {
         // Unstake on global manager
         uint256 baseFee = xcall(
             globalChainId,
             globalManagerContract,
-            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount, gasLimit)
+            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount)
         );
 
         // Fee for this.xunstake callback
         uint256 callbackFee =
-            feeFor(uint64(block.chainid), abi.encodeWithSelector(this.xunstake.selector, msg.sender, amount), gasLimit);
+            feeFor(uint64(block.chainid), abi.encodeWithSelector(this.xunstake.selector, msg.sender, amount));
 
         // Require that user cover both base and callback fees
-        require(msg.value >= baseFee + callbackFee, "LocalStake: insufficient fee");
+        require(msg.value >= baseFee + callbackFee, "LocalStake: user xcalls gas fee");
     }
 
     /**
@@ -107,8 +104,17 @@ contract LocalStake is XApp, Ownable {
         require(xmsg.sourceChainId == globalChainId, "LocalStake: invalid source chain");
         require(xmsg.sender == globalManagerContract, "LocalStake: invalid sender");
 
-        require(token.transfer(user, amount), "LocalStake: transfer failed");
+        _unstake(user, amount);
+    }
 
+    /**
+     * @notice Internally processes unstake requests, transferring the specified amount of tokens back to the user
+     * @param user The address of the user receiving the unstaked tokens
+     * @param amount The amount of tokens to be transferred
+     * @dev This internal function handles the actual transfer of tokens upon a successful unstake operation
+     */
+    function _unstake(address user, uint256 amount) internal {
+        require(token.transfer(user, amount), "LocalStake: transfer failed");
         emit Unstaked(user, amount);
     }
 
