@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.25;
 
 import {Script, console} from "lib/forge-std/src/Script.sol";
 import {LocalStake} from "../src/LocalStake.sol";

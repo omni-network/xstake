@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Test, console} from "../lib/forge-std/src/Test.sol";
+import {Test,console} from "../lib/forge-std/src/Test.sol";
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
@@ -41,18 +41,20 @@ contract LocalStakeTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "feeFor(uint64,bytes)",
+                "feeFor(uint64,bytes,uint64)",
                 globalChainId,
-                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount),
+                localStake.ADD_STAKE_GAS()
             )
         );
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount),
+                localStake.ADD_STAKE_GAS()
             )
         );
         localStake.stake{value: feeAmount}(stakeAmount);
@@ -62,7 +64,7 @@ contract LocalStakeTest is Test {
     }
 
     /// @dev Tests staking with an insufficient fee provided
-    function testInsufficientFee() public {
+    function testStakeInsufficientFee() public {
         uint256 feeAmount = 1000 wei;
         uint256 stakeAmount = 1000000;
         address user = address(0xf00);
@@ -77,47 +79,82 @@ contract LocalStakeTest is Test {
     }
 
     /// @dev Tests unstaking with a sufficient gas limit
-    function testUnstakeWithSufficientGas() public {
-        uint256 unstakeAmount = 100 ether;
+    function testUnstake() public {
+        uint256 stakeAmount = 100 ether;
         uint256 feeAmount = 1000 gwei;
-        uint64 gasLimit = 500_000;  // A typical gas limit sufficient for the operation
         address user = address(0xf00);
 
         vm.deal(user, 3 * feeAmount); // Ensuring sufficient ether for fees
-        localToken.transfer(user, unstakeAmount);
+        localToken.transfer(user, stakeAmount);
+
         vm.startPrank(user);
-        localToken.approve(address(localStake), unstakeAmount);
-        localStake.stake{value: feeAmount}(unstakeAmount);
+        localToken.approve(address(localStake), stakeAmount);
+        localStake.stake{value: feeAmount}(stakeAmount);
 
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("removeStake(address,uint256,uint64)", user, unstakeAmount, gasLimit)
+                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount),
+                localStake.REMOVE_STAKE_GAS()
             )
         );
-        localStake.unstake{value: feeAmount}(unstakeAmount, gasLimit);
+        localStake.unstake{value: feeAmount}(stakeAmount);
         vm.stopPrank();
     }
 
-    /// @dev Tests unstaking with an insufficient gas limit, expecting a revert
-    function testUnstakeWithInsufficientGas() public {
-        uint256 unstakeAmount = 100 ether;
+    /// @dev Tests unstaking with an insufficient xcall fee, expecting a revert
+    function testUnstakeWithInsufficientFee() public {
+        uint256 stakeAmount = 100 ether;
         uint256 feeAmount = 1000 gwei;
-        uint64 gasLimit = 21_000;  // insufficient gas limit for operation, passes basic min amount check
+        uint256 tooLowFeeAmount = 1000 wei;
         address user = address(0xf00);
 
-        vm.deal(user, feeAmount + 1 ether); // Providing enough ether for potential gas costs
+        vm.deal(user, 3 * feeAmount); // Ensuring sufficient ether for fees
+        localToken.transfer(user, stakeAmount);
 
-        localToken.transfer(user, unstakeAmount);
         vm.startPrank(user);
-        localToken.approve(address(localStake), unstakeAmount);
-        localStake.stake{value: feeAmount}(unstakeAmount);
+        localToken.approve(address(localStake), stakeAmount);
+        localStake.stake{value: feeAmount}(stakeAmount);
 
-        vm.expectRevert("LocalStake: gasLimit too low");
-        localStake.unstake{value: feeAmount}(unstakeAmount, gasLimit);
+        vm.expectCall(
+            address(portal),
+            abi.encodeWithSignature(
+                "xcall(uint64,address,bytes,uint64)",
+                globalChainId,
+                globalManagerAddress,
+                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount),
+                localStake.REMOVE_STAKE_GAS()
+            )
+        );
+        vm.expectRevert("LocalStake: user xcalls gas fee");
+        localStake.unstake{value: tooLowFeeAmount}(stakeAmount);
         vm.stopPrank();
+    }
+
+    /// @dev Profiles gas usage of xunstake method
+    function testXUnstakeGasProfile() public {
+        uint256 stakeAmount = 100 ether;
+        uint256 feeAmount = 1000 gwei;
+        address user = address(0xf00);
+
+        vm.deal(user, 3 * feeAmount); // Ensuring sufficient ether for fees
+        localToken.transfer(user, stakeAmount);
+
+        vm.startPrank(user);
+        localToken.approve(address(localStake), stakeAmount);
+        localStake.stake{value: feeAmount}(stakeAmount);
+        vm.stopPrank();
+
+        vm.prank(globalManagerAddress);
+        uint256 gasUsed = gasleft(); // start gas measure
+        portal.mockXCall(
+            globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, stakeAmount)
+        );
+        gasUsed = gasUsed - gasleft();
+        console.log("xunstake gas used:", gasUsed); // use this value for gasLimit variable in GlobalManager.removeStake()
+        assertTrue(globalManager.XUNSTAKE_GAS() > gasUsed, "xunstake gas usage unexpectedly high");
     }
 }

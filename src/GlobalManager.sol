@@ -5,13 +5,14 @@ import {XApp} from "omni/contracts/src/pkg/XApp.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import {LocalStake} from "./LocalStake.sol";
+import {GasLimits} from "./GasLimits.sol";
 
 /**
  * @title GlobalManager contract
  * @notice Manages global operations and interactions with other contracts
  * @dev Deployed on Omni, using Ownable for ownership management
  */
-contract GlobalManager is XApp, Ownable {
+contract GlobalManager is XApp, Ownable, GasLimits {
     /**
      * @notice Maps chain IDs to contract addresses
      * @dev State mapping of chain IDs to addresses for cross-chain interactions
@@ -61,13 +62,12 @@ contract GlobalManager is XApp, Ownable {
     }
 
     /**
-     * @notice Removes stake for a user on a specific chain
-     * @dev Initiates an xcall to execute a stake removal operation
-     * @param user   The address of the user removing the stake
+     * @notice Removes a specified amount of stake for a user on a specific chain
+     * @dev This function is called via a cross-chain call and includes checks for xcall validity and sender authorization
+     * @param user The address of the user from whom the stake is being removed
      * @param amount The amount of stake to remove
-     * @param gasLimit The max amount of gas used by the trx on destination
      */
-    function removeStake(address user, uint256 amount, uint64 gasLimit) external xrecv {
+    function removeStake(address user, uint256 amount) external xrecv {
         require(isXCall(), "GlobalManager: only xcall");
         require(isSupportedChain(xmsg.sourceChainId), "GlobalManager: chain not found");
         require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
@@ -76,7 +76,7 @@ contract GlobalManager is XApp, Ownable {
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 
-        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), gasLimit);
+        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), XUNSTAKE_GAS);
     }
 
     /**
