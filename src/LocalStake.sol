@@ -5,15 +5,15 @@ import {XApp} from "omni/contracts/src/pkg/XApp.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-
 import {GlobalManager} from "./GlobalManager.sol";
+import {GasLimits} from "./GasLimits.sol";
 
 /**
  * @title LocalStake Contract
  * @notice A contract for staking tokens locally on a rollup chain
  * @dev Contract uses cross-chain communication for stake coordination
  */
-contract LocalStake is XApp, Ownable {
+contract LocalStake is XApp, Ownable, GasLimits {
     /**
      * @notice Chain ID of the global network
      * @dev State variable to store the Omni Network's specific chain ID
@@ -66,7 +66,8 @@ contract LocalStake is XApp, Ownable {
         uint256 fee = xcall(
             globalChainId,
             globalManagerContract,
-            abi.encodeWithSelector(GlobalManager.addStake.selector, msg.sender, amount)
+            abi.encodeWithSelector(GlobalManager.addStake.selector, msg.sender, amount),
+            ADD_STAKE_GAS
         );
 
         require(msg.value >= fee, "LocalStake: user xcall gas fee");
@@ -82,12 +83,13 @@ contract LocalStake is XApp, Ownable {
         uint256 baseFee = xcall(
             globalChainId,
             globalManagerContract,
-            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount)
+            abi.encodeWithSelector(GlobalManager.removeStake.selector, msg.sender, amount),
+            REMOVE_STAKE_GAS
         );
 
         // Fee for this.xunstake callback
         uint256 callbackFee =
-            feeFor(uint64(block.chainid), abi.encodeWithSelector(this.xunstake.selector, msg.sender, amount));
+            feeFor(uint64(block.chainid), abi.encodeWithSelector(this.xunstake.selector, msg.sender, amount), XUNSTAKE_GAS);
 
         // Require that user cover both base and callback fees
         require(msg.value >= baseFee + callbackFee, "LocalStake: user xcalls gas fee");

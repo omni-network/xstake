@@ -5,13 +5,14 @@ import {XApp} from "omni/contracts/src/pkg/XApp.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import {LocalStake} from "./LocalStake.sol";
+import {GasLimits} from "./GasLimits.sol";
 
 /**
  * @title GlobalManager contract
  * @notice Manages global operations and interactions with other contracts
  * @dev Deployed on Omni, using Ownable for ownership management
  */
-contract GlobalManager is XApp, Ownable {
+contract GlobalManager is XApp, Ownable, GasLimits {
     /**
      * @notice Maps chain IDs to contract addresses
      * @dev State mapping of chain IDs to addresses for cross-chain interactions
@@ -29,11 +30,6 @@ contract GlobalManager is XApp, Ownable {
      * @dev State variable to track the cumulative staking across all chains
      */
     uint256 public totalStake;
-
-    /**
-     * @dev Constant max gas to spend in call to delegate unstaking, ensuring success
-     */
-    uint64 private constant MAX_GAS_LIMIT = 200_000;
 
     /**
      * @dev Initializes the contract with the specified portal address
@@ -80,7 +76,7 @@ contract GlobalManager is XApp, Ownable {
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 
-        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), MAX_GAS_LIMIT);
+        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), XUNSTAKE_GAS);
     }
 
     /**

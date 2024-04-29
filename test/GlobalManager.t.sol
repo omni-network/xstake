@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
-import {Test} from "../lib/forge-std/src/Test.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 import {LocalToken} from "../src/LocalToken.sol";
@@ -11,7 +11,7 @@ import {LocalToken} from "../src/LocalToken.sol";
  * @title Test suite for the GlobalManager functionality
  * @dev This contract tests the interaction with the GlobalManager, including chain management and stake handling, using a mock portal for cross-chain simulation.
  */
-contract GlobalTest is Test {
+contract GlobalManagerTest is Test {
     GlobalManager globalManager;
     MockPortal portal;
 
@@ -71,13 +71,32 @@ contract GlobalTest is Test {
         assertEq(globalManager.stakeOn(user, chainId), amount, "Stake should be correctly added to the chain.");
     }
 
+    /// @dev Profiles gas usage of addStake method
+    function testAddStakeProfileGas() public {
+        uint256 amount = 100;
+        address user = address(0x123);
+        uint64 chainId = 1;
+        address contractAddress = address(0x123);
+        globalManager.addChainContract(chainId, contractAddress);
+        
+        vm.prank(contractAddress);
+        uint256 gasUsed = gasleft(); // start gas measure
+        portal.mockXCall(
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount)
+        );
+        gasUsed = gasUsed - gasleft();
+        console.log("addStake gas used:", gasUsed);
+
+        assertEq(globalManager.stakeOn(user, chainId), amount, "Stake should be correctly added to the chain.");
+        assertTrue(globalManager.ADD_STAKE_GAS() > gasUsed, "addStake gas used unexpectedly high");
+    }
+
     /// @dev Tests the removal of stake and ensures that the stake amount is cleared
     function testRemoveStake() public {
         uint256 amount = 100;
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        uint64 xunstakeGasLimit = 200_000;
 
         vm.deal(contractAddress, 1 ether);
         globalManager.addChainContract(chainId, contractAddress);
@@ -91,7 +110,10 @@ contract GlobalTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "feeFor(uint64,bytes,uint64)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount), xunstakeGasLimit
+                "feeFor(uint64,bytes,uint64)", 
+                chainId, 
+                abi.encodeWithSignature("xunstake(address,uint256)", user, amount), 
+                globalManager.XUNSTAKE_GAS()
             )
         );
         vm.expectCall(
@@ -101,7 +123,7 @@ contract GlobalTest is Test {
                 chainId,
                 contractAddress,
                 abi.encodeWithSignature("xunstake(address,uint256)", user, amount),
-                xunstakeGasLimit
+                globalManager.XUNSTAKE_GAS()
             )
         );
         vm.prank(contractAddress);
@@ -109,5 +131,52 @@ contract GlobalTest is Test {
             chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount)
         );
         assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
+    }
+
+    /// @dev Profiles gas usage of removeStake method
+    function testRemoveStakeProfileGas() public {
+        uint256 amount = 100;
+        address user = address(0x123);
+        uint64 chainId = 1;
+        address contractAddress = address(0x123);
+
+        vm.deal(contractAddress, 1 ether);
+        globalManager.addChainContract(chainId, contractAddress);
+        vm.prank(contractAddress);
+        portal.mockXCall(
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.addStake.selector, user, amount)
+        );
+        assertEq(globalManager.stakeOn(user, chainId), amount, "Initial stake should be correctly set.");
+
+        vm.deal(address(globalManager), 1 ether); // Ensures sufficient funds for fee handling
+        vm.expectCall(
+            address(portal),
+            abi.encodeWithSignature(
+                "feeFor(uint64,bytes,uint64)", 
+                chainId, 
+                abi.encodeWithSignature("xunstake(address,uint256)", user, amount), 
+                globalManager.XUNSTAKE_GAS()
+            )
+        );
+        vm.expectCall(
+            address(portal),
+            abi.encodeWithSignature(
+                "xcall(uint64,address,bytes,uint64)",
+                chainId,
+                contractAddress,
+                abi.encodeWithSignature("xunstake(address,uint256)", user, amount),
+                globalManager.XUNSTAKE_GAS()
+            )
+        );
+        vm.prank(contractAddress);
+        uint256 gasUsed = gasleft();
+        portal.mockXCall(
+            chainId, address(globalManager), abi.encodeWithSelector(globalManager.removeStake.selector, user, amount)
+        );
+        gasUsed = gasUsed - gasleft();
+        console.log("removeStake gas used:", gasUsed);
+
+        assertEq(globalManager.stakeOn(user, chainId), 0, "Stake should be removed successfully.");
+        assertTrue(globalManager.REMOVE_STAKE_GAS() > gasUsed, "removeStake gas used unexpectedly high");
     }
 }

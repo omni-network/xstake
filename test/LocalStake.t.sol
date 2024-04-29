@@ -41,18 +41,20 @@ contract LocalStakeTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "feeFor(uint64,bytes)",
+                "feeFor(uint64,bytes,uint64)",
                 globalChainId,
-                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount),
+                localStake.ADD_STAKE_GAS()
             )
         );
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("addStake(address,uint256)", user, stakeAmount),
+                localStake.ADD_STAKE_GAS()
             )
         );
         localStake.stake{value: feeAmount}(stakeAmount);
@@ -92,10 +94,11 @@ contract LocalStakeTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount),
+                localStake.REMOVE_STAKE_GAS()
             )
         );
         localStake.unstake{value: feeAmount}(stakeAmount);
@@ -119,10 +122,11 @@ contract LocalStakeTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "xcall(uint64,address,bytes)",
+                "xcall(uint64,address,bytes,uint64)",
                 globalChainId,
                 globalManagerAddress,
-                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount)
+                abi.encodeWithSignature("removeStake(address,uint256)", user, stakeAmount),
+                localStake.REMOVE_STAKE_GAS()
             )
         );
         vm.expectRevert("LocalStake: user xcalls gas fee");
@@ -131,7 +135,7 @@ contract LocalStakeTest is Test {
     }
 
     /// @dev Profiles gas usage of xunstake method
-    function testXUnstake() public {
+    function testXUnstakeGasProfile() public {
         uint256 stakeAmount = 100 ether;
         uint256 feeAmount = 1000 gwei;
         address user = address(0xf00);
@@ -150,6 +154,7 @@ contract LocalStakeTest is Test {
             globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, stakeAmount)
         );
         gasUsed = gasUsed - gasleft();
-        console.log("gas used by xunstake call", gasUsed); // use this value for gasLimit variable in GlobalManager.removeStake()
+        console.log("xunstake gas used:", gasUsed); // use this value for gasLimit variable in GlobalManager.removeStake()
+        assertTrue(globalManager.XUNSTAKE_GAS() > gasUsed, "xunstake gas usage unexpectedly high");
     }
 }
