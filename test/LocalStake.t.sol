@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Test} from "../lib/forge-std/src/Test.sol";
+import {Test,console} from "../lib/forge-std/src/Test.sol";
 import {MockPortal} from "../lib/omni/contracts/test/utils/MockPortal.sol";
 import {LocalStake} from "../src/LocalStake.sol";
 import {GlobalManager} from "../src/GlobalManager.sol";
@@ -128,5 +128,28 @@ contract LocalStakeTest is Test {
         vm.expectRevert("LocalStake: user xcalls gas fee");
         localStake.unstake{value: tooLowFeeAmount}(stakeAmount);
         vm.stopPrank();
+    }
+
+    /// @dev Profiles gas usage of xunstake method
+    function testXUnstake() public {
+        uint256 stakeAmount = 100 ether;
+        uint256 feeAmount = 1000 gwei;
+        address user = address(0xf00);
+
+        vm.deal(user, 3 * feeAmount); // Ensuring sufficient ether for fees
+        localToken.transfer(user, stakeAmount);
+
+        vm.startPrank(user);
+        localToken.approve(address(localStake), stakeAmount);
+        localStake.stake{value: feeAmount}(stakeAmount);
+        vm.stopPrank();
+
+        uint256 gasUsed = gasleft(); // start gas measure
+        vm.prank(globalManagerAddress);
+        portal.mockXCall(
+            globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, stakeAmount)
+        );
+        gasUsed = gasUsed - gasleft(); // consumes gas above the 21_000 min gas for Portal xcalls gasLimit param
+        console.log("gas used by xunstake call", gasUsed); // use this value for gasLimit variable in GlobalManager.removeStake()
     }
 }
