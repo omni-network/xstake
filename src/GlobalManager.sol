@@ -31,6 +31,11 @@ contract GlobalManager is XApp, Ownable {
     uint256 public totalStake;
 
     /**
+     * @dev Constant max gas to spend in call to delegate unstaking, ensuring success
+     */
+    uint64 private constant MAX_GAS_LIMIT = 200_000;
+
+    /**
      * @dev Initializes the contract with the specified portal address
      * @param portal The portal address used for initialization
      */
@@ -72,12 +77,10 @@ contract GlobalManager is XApp, Ownable {
         require(xmsg.sender == contractOn[xmsg.sourceChainId], "GlobalManager: invalid sender");
         require(stakeOn[user][xmsg.sourceChainId] >= amount, "GlobalManager: insufficient stake");
 
-        uint64 gasLimit = 200_000; // max gas to spend in call to delegate unstaking, ensuring success
-
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 
-        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), gasLimit);
+        xcall(xmsg.sourceChainId, xmsg.sender, abi.encodeWithSelector(LocalStake.xunstake.selector, user, amount), MAX_GAS_LIMIT);
     }
 
     /**

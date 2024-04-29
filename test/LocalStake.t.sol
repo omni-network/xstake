@@ -144,12 +144,12 @@ contract LocalStakeTest is Test {
         localStake.stake{value: feeAmount}(stakeAmount);
         vm.stopPrank();
 
-        uint256 gasUsed = gasleft(); // start gas measure
         vm.prank(globalManagerAddress);
+        uint256 gasUsed = gasleft(); // start gas measure
         portal.mockXCall(
             globalChainId, address(localStake), abi.encodeWithSelector(localStake.xunstake.selector, user, stakeAmount)
         );
-        gasUsed = gasUsed - gasleft(); // consumes gas above the 21_000 min gas for Portal xcalls gasLimit param
+        gasUsed = gasUsed - gasleft();
         console.log("gas used by xunstake call", gasUsed); // use this value for gasLimit variable in GlobalManager.removeStake()
     }
 }
