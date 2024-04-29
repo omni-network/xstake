@@ -74,17 +74,6 @@ contract GlobalManager is XApp, Ownable {
 
         uint64 gasLimit = 200_000; // max gas to spend in call to delegate unstaking, ensuring success
 
-        _removeStake(user, amount, gasLimit);
-    }
-
-    /**
-     * @notice Removes stake for a user on a specific chain
-     * @dev Initiates an xcall to execute a stake removal operation
-     * @param user   The address of the user removing the stake
-     * @param amount The amount of stake to remove
-     * @param gasLimit The max amount of gas used by the trx on destination
-     */
-    function _removeStake(address user, uint256 amount, uint64 gasLimit) internal {
         stakeOn[user][xmsg.sourceChainId] -= amount;
         totalStake -= amount;
 

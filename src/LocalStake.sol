@@ -104,16 +104,6 @@ contract LocalStake is XApp, Ownable {
         require(xmsg.sourceChainId == globalChainId, "LocalStake: invalid source chain");
         require(xmsg.sender == globalManagerContract, "LocalStake: invalid sender");
 
-        _unstake(user, amount);
-    }
-
-    /**
-     * @notice Internally processes unstake requests, transferring the specified amount of tokens back to the user
-     * @param user The address of the user receiving the unstaked tokens
-     * @param amount The amount of tokens to be transferred
-     * @dev This internal function handles the actual transfer of tokens upon a successful unstake operation
-     */
-    function _unstake(address user, uint256 amount) internal {
         require(token.transfer(user, amount), "LocalStake: transfer failed");
         emit Unstaked(user, amount);
     }
