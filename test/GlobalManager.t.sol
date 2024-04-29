@@ -91,7 +91,7 @@ contract GlobalTest is Test {
         vm.expectCall(
             address(portal),
             abi.encodeWithSignature(
-                "feeFor(uint64,bytes,uint64)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount), gasLimit
+                "feeFor(uint64,bytes,uint64)", chainId, abi.encodeWithSignature("xunstake(address,uint256)", user, amount), xunstakeGasLimit
             )
         );
         vm.expectCall(
@@ -101,7 +101,7 @@ contract GlobalTest is Test {
                 chainId,
                 contractAddress,
                 abi.encodeWithSignature("xunstake(address,uint256)", user, amount),
-                gasLimit
+                xunstakeGasLimit
             )
         );
         vm.prank(contractAddress);
