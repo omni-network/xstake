@@ -77,7 +77,7 @@ contract GlobalTest is Test {
         address user = address(0x123);
         uint64 chainId = 1;
         address contractAddress = address(0x123);
-        uint64 gasLimit = 200_000;
+        uint64 xunstakeGasLimit = 200_000;
 
         vm.deal(contractAddress, 1 ether);
         globalManager.addChainContract(chainId, contractAddress);
