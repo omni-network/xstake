@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-export PORTAL_ADDRESS=0xe47b225001e040e161af9018fcd4425b21b8d169 # portal address
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 # anvil first private key
+export PORTAL_ADDRESS=0x505cd0cf0121c790812d5f3f08585d548236e605 # portal address
 export GLOBAL_CHAIN_ID=16561 # global chain ID (testnet is 165)
 export OMNI_RPC_URL=http://localhost:8000 # Omni EVM RPC URL
 export OP_CHAIN_ID=100 # Optimism Sepolia Chain ID is 11155420
