@@ -50,7 +50,7 @@ function App() {
       (window as any).ethereum.request({
         method: "wallet_addEthereumChain",
         params: [{
-          chainId: ethers.toBeHex(chainId),
+          chainId: `0x${chainId.toString(16)}`,
           rpcUrls: [networks[network].rpcUrl],
           chainName: networks[network].name,
           nativeCurrency: {
