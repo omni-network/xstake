@@ -1,28 +1,18 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.25;
+pragma solidity 0.8.25;
 
 /**
- * @title Gas Limits for Cross-Chain Operations
- * @notice This abstract contract defines gas limits used in cross-chain operations.
- * @dev These constants and variables are set based on empirical values observed during testing.
- *      They are used to ensure successful execution of cross-chain calls by providing enough gas.
+ * @title XGasLimits
+ * @notice Constant gas limits used in xcalls.
+ *         Values determined via unit tests, with buffer for safety.
  */
-abstract contract GasLimits {
-    /**
-     * @notice Maximum gas used for delegating unstaking operations via cross-chain communication.
-     * @dev This value is derived from test results in LocalStakeTest.testXUnstakeGasProfile().
-     */
-    uint64 public constant XUNSTAKE_GAS = 90_000; // test xunstake gas used: 77556
+library GasLimits {
+    /// @notice XStakeController.recordStake xcall gas limit.
+    uint64 internal constant RecordStake = 100_000;
 
-    /**
-     * @notice Maximum gas limit for adding stake in cross-chain operations.
-     * @dev This value is derived from test results in GlobalManagerTest.testAddStakeProfileGas().
-     */
-    uint64 public ADD_STAKE_GAS = 110_000; // test addStake gas used: 99688
+    /// @notice XStakeController.unstakeFor xcall gas limit.
+    uint64 internal constant UnstakeFor = 100_000;
 
-    /**
-     * @notice Maximum gas limit for removing stake in cross-chain operations.
-     * @dev This value is derived from test results in GlobalManagerTest.testRemoveStakeProfileGas().
-     */
-    uint64 public REMOVE_STAKE_GAS = 90_000; // test removeStake gas used: 74799
+    /// @notice XStaker.withdraw xcall gas limit.
+    uint64 internal constant Withdraw = 100_000;
 }
