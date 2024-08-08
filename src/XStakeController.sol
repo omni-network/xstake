@@ -38,12 +38,10 @@ contract XStakeController is XApp, Ownable {
      * @param amount Amount staked.
      */
     function recordStake(address user, uint256 amount) external xrecv {
-        // First, make sure this is an xcall from a known XStaker
         require(isXCall(), "Controller: only xcall");
         require(xstakerOn[xmsg.sourceChainId] != address(0), "Controller: unsupported chain");
         require(xstakerOn[xmsg.sourceChainId] == xmsg.sender, "Controller: only xstaker");
 
-        // Then record the stake
         stakeOn[user][xmsg.sourceChainId] += amount;
     }
 
@@ -55,13 +53,11 @@ contract XStakeController is XApp, Ownable {
      * payout the user via xcall.
      */
     function unstake(uint64 onChainID) external payable {
-        // First, unstake
         uint256 stake = stakeOn[msg.sender][onChainID];
         require(stake > 0, "Controller: no stake");
 
         stakeOn[msg.sender][onChainID] = 0;
 
-        // Then, tell the XStaker to payout the user
         uint256 fee = xcall({
             destChainId: onChainID,
             to: xstakerOn[onChainID],

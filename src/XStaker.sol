@@ -62,11 +62,9 @@ contract XStaker is XApp {
      * is low. Though it should remain a consideration.
      */
     function stake(uint256 amount, uint8 confLevel) external payable {
-        // First, make the deposit
         require(amount > 0, "XStaker: insufficient amount");
         require(token.transferFrom(msg.sender, address(this), amount), "XStaker: transfer failed");
 
-        // Then, record it with the controller
         uint256 fee = xcall({
             destChainId: omni.omniChainId(),
             conf: confLevel,
@@ -97,12 +95,9 @@ contract XStaker is XApp {
      *         Only callable by via xcall by XStakeController on Omni.
      */
     function withdraw(address to, uint256 amount) external xrecv {
-        // First, make sure this is an xcall from the XStakeController
         require(isXCall(), "XStaker: only xcall");
         require(xmsg.sourceChainId == omni.omniChainId(), "XStaker: only omni");
         require(xmsg.sender == controller, "XStaker: only controller");
-
-        // Then, make the payout
         require(token.transfer(to, amount), "XStaker: transfer failed");
     }
 }
