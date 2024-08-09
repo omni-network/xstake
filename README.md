@@ -23,11 +23,11 @@ The first accepts deposits, and pays out withdrawals. The second maintains globa
     Entrypoint for staking. This function accepts deposits, and records them with the `XStakeController` via `xcall`.
 
 
-2. [`XStakeController.recordStake`](./src/XStakeController.sol#40)
+2. [`XStakeController.recordStake`](./src/XStakeController.sol#L40)
 
     Records stake. Only callable by a known `XStaker` contract on a supported chain.
 
-3. [`XStakeController.unstake`](./src/XStakeController.sol#55)
+3. [`XStakeController.unstake`](./src/XStakeController.sol#L55)
 
     Entrypoint for unstaking. This function authorizes withdrawals, and directs a payout to the corresponding `XStaker` via `xcall`.
 
