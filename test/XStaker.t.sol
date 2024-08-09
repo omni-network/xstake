@@ -11,7 +11,7 @@ import {Test} from "forge-std/Test.sol";
 
 /**
  * @title XStaker_Test
- * @notice Test suite for the XStaker contract
+ * @notice Test suite for XStaker
  */
 contract XStaker_Test is Test {
     TestToken token;

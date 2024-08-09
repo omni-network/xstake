@@ -10,10 +10,10 @@ import {GasLimits} from "src/GasLimits.sol";
 import {Test} from "forge-std/Test.sol";
 
 /**
- * @title XStaker_Test
- * @notice Test suite for the XStaker contract
+ * @title XStakeController_Test
+ * @notice Test suite for XStakerController
  */
-contract XStaker_Test is Test {
+contract XStakeController_Test is Test {
     TestToken token;
     MockPortal portal;
     XStakeController controller;

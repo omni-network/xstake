@@ -18,22 +18,22 @@ The protocol has two contracts
 The first accepts deposits, and pays out withdrawals. The second maintains global accounting, and authorizes withdrawals. To learn how each contract works, read the source code. It's not long, and is commented generously. Read in the following order:
 
 
-1. [`XStaker.stake`](./src/XStaker.sol#L60)
+1. [`XStaker.stake`](./src/XStaker.sol#L64)
 
     Entrypoint for staking. This function accepts deposits, and records them with the `XStakeController` via `xcall`.
 
 
-2. [`XStakerController.recordStake`](./src/XStakerController.sol#36)
+2. [`XStakeController.recordStake`](./src/XStakeController.sol#40)
 
     Records stake. Only callable by a known `XStaker` contract on a supported chain.
 
-3. [`XStakerController.unstake`](./src/XStakerController.sol#47)
+3. [`XStakeController.unstake`](./src/XStakeController.sol#55)
 
     Entrypoint for unstaking. This function authorizes withdrawals, and directs a payout to the corresponding `XStaker` via `xcall`.
 
-4. [`XStaker.withdraw`](./src/XStaker.sol#L80)
+4. [`XStaker.withdraw`](./src/XStaker.sol#L97)
 
-    Withdraws stake back to the user. Only callable by the `XStakerController`.
+    Withdraws stake back to the user. Only callable by the `XStakeController`.
 
 ## Testing
 
@@ -55,7 +55,7 @@ make devnet-start
 make devnet-deploy
 ```
 
-This deploys an `XStakerController` to Omni's devnet EVM. Along with an
+This deploys an `XStakeController` to Omni's devnet EVM. Along with an
 `XStaker` to each mock rollup - mock arb and mock op. It also deploys an ERC20
 staking token to each rollup. This token has a public `mint()` method, so you
 can mint tokens to test with.

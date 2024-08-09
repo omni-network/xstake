@@ -71,7 +71,7 @@ deploy_xstaker() {
   echo $xstaker
 }
 
-# Deploy XStakerController, return address
+# Deploy XStakeController, return address
 deploy_controller() {
   local rpc=$1
   local controller=$(getaddr $rpc)
@@ -88,7 +88,7 @@ deploy_controller() {
   echo $controller
 }
 
-# Register XStaker with XStakerController
+# Register XStaker with controller
 register_xstaker() {
   local rpc=$1
   local controller=$2
@@ -122,4 +122,4 @@ echo "Token(op): $op_token"
 echo "Token(arb): $arb_token"
 echo "XStaker(op): $op_xstaker"
 echo "XStaker(arb): $arb_xstaker"
-echo "XStakerController(omni): $controller"
+echo "XStakeController(omni): $controller"
