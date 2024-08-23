@@ -9,10 +9,16 @@ import {XStaker} from "./XStaker.sol";
 
 /**
  * @title XStakeController
+ *
  * @notice The global accountant of our cross-chain staking protocol. This is a
- *         singleton contract, deployed on Omni. It tracks stakes for all users
- *         across each supported chain, and directs the XStaker to payout users
- *         when they unstake.
+ *      singleton contract, deployed on Omni. It tracks stakes for all users
+ *      across each supported chain, and directs the XStaker to payout users
+ *      when they unstake.
+ *
+ * @dev We initialize our XApp with default ConfLevel.Finalized (see constructor),
+ *      and do not specify conf level in individual xcalls, as we do in XStaker.
+ *      This is bescause XStakeController is deployed on Omni. Omni only
+ *      supports Finalized conf level, as OmniEVM has instant finality.
  */
 contract XStakeController is XApp, Ownable {
     /// @notice Address of XStaker contract by chain id.
@@ -21,14 +27,6 @@ contract XStakeController is XApp, Ownable {
     /// @notice Map account to chain id to stake.
     mapping(address => mapping(uint64 => uint256)) public stakeOn;
 
-    /**
-     * @notice Constructor.
-     *
-     *  NOTE: We initialize our XApp with default ConfLevel.Finalized, and do not
-     *  specify conf level in individual xcalls, as we do in XStaker.
-     *  This is bescause XStakeController is deployed on Omni. Omni only
-     *  supports Finalized conf level, as OmniEVM has instant finality.
-     */
     constructor(address portal, address owner) XApp(portal, ConfLevel.Finalized) Ownable(owner) {}
 
     /**
@@ -47,10 +45,9 @@ contract XStakeController is XApp, Ownable {
 
     /**
      * @notice Unstake msg.sender `onChainID`.
-     *
-     * NOTE: Unstaking starts on the controller, because the controller is the
-     * source of truth for user stakes. The controller directs the XStaker to
-     * payout the user via xcall.
+     * @dev Unstaking starts on the controller, because the controller is the
+     *      source of truth for user stakes. The controller directs the XStaker to
+     *      payout the user via xcall.
      */
     function unstake(uint64 onChainID) external payable {
         uint256 stake = stakeOn[msg.sender][onChainID];

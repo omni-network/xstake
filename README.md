@@ -18,20 +18,20 @@ The protocol has two contracts
 The first accepts deposits, and pays out withdrawals. The second maintains global accounting, and authorizes withdrawals. To learn how each contract works, read the source code. It's not long, and is commented generously. Read in the following order:
 
 
-1. [`XStaker.stake`](./src/XStaker.sol#L64)
+1. [`XStaker.stake`](./src/XStaker.sol#L65)
 
     Entrypoint for staking. This function accepts deposits, and records them with the `XStakeController` via `xcall`.
 
 
-2. [`XStakeController.recordStake`](./src/XStakeController.sol#L40)
+2. [`XStakeController.recordStake`](./src/XStakeController.sol#L38)
 
     Records stake. Only callable by a known `XStaker` contract on a supported chain.
 
-3. [`XStakeController.unstake`](./src/XStakeController.sol#L55)
+3. [`XStakeController.unstake`](./src/XStakeController.sol#L54)
 
     Entrypoint for unstaking. This function authorizes withdrawals, and directs a payout to the corresponding `XStaker` via `xcall`.
 
-4. [`XStaker.withdraw`](./src/XStaker.sol#L97)
+4. [`XStaker.withdraw`](./src/XStaker.sol#L96)
 
     Withdraws stake back to the user. Only callable by the `XStakeController`.
 
