@@ -133,4 +133,7 @@ CONTROLLER=$controller
 OMNI_RPC=$omni_rpc
 OP_RPC=$op_rpc
 ARB_RPC=$arb_rpc
+OP_CHAINID=$(cast chain-id --rpc-url $op_rpc)
+ARB_CHAINID=$(cast chain-id --rpc-url $arb_rpc)
+OMNI_CHAINID=$(cast chain-id --rpc-url $omni_rpc)
 " > deployments.sh
