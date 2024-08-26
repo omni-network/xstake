@@ -31,7 +31,7 @@ The first accepts deposits, and pays out withdrawals. The second maintains globa
 
     Entrypoint for unstaking. This function authorizes withdrawals, and directs a payout to the corresponding `XStaker` via `xcall`.
 
-4. [`XStaker.withdraw`](./src/XStaker.sol#L96)
+4. [`XStaker.withdraw`](./src/XStaker.sol#L103)
 
     Withdraws stake back to the user. Only callable by the `XStakeController`.
 

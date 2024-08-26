@@ -62,7 +62,7 @@ contract XStaker is XApp {
      * @param amount    Amount of tokens to stake.
      * @param confLevel XCall confirmation level
      */
-    function stake(uint256 amount, uint8 confLevel) external payable {
+    function stake(uint256 amount, uint8 confLevel) public payable {
         require(amount > 0, "XStaker: insufficient amount");
         require(token.transferFrom(msg.sender, address(this), amount), "XStaker: transfer failed");
 
@@ -76,6 +76,13 @@ contract XStaker is XApp {
 
         // Make sure the user paid
         require(msg.value >= fee, "XStaker: insufficient fee");
+    }
+
+    /**
+     * @notice Stakes `amount` tokens with default confirmation level.
+     */
+    function stake(uint256 amount) public payable {
+        stake(amount, defaultConfLevel);
     }
 
     /**
