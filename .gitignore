@@ -10,3 +10,6 @@ broadcast/
 
 .env
 .vscode/
+
+# output of make devnet-deploy
+deployments.sh

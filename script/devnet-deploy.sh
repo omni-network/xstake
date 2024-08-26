@@ -123,3 +123,14 @@ echo "Token(arb): $arb_token"
 echo "XStaker(op): $op_xstaker"
 echo "XStaker(arb): $arb_xstaker"
 echo "XStakeController(omni): $controller"
+
+echo "
+OP_TOKEN=$op_token
+ARB_TOKEN=$arb_token
+OP_XSTAKER=$op_xstaker
+ARB_XSTAKER=$arb_xstaker
+CONTROLLER=$controller
+OMNI_RPC=$omni_rpc
+OP_RPC=$op_rpc
+ARB_RPC=$arb_rpc
+" > deployments.sh
