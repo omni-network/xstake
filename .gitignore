@@ -1,4 +1,3 @@
-# Compiler files
 cache/
 out/
 
@@ -6,18 +5,8 @@ out/
 !/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
-
-# Docs
-docs/
-
-# Dotenv file
-.env
-
-# VS Code
-.vscode/
-
-# Deployment files
 broadcast/
 
-# Node modules
-node_modules/
+
+.env
+.vscode/
