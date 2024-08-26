@@ -34,7 +34,7 @@ import {XStakeController} from "./XStakeController.sol";
  *
  *          In scenario 1, our XStakeController will view this user as staked, but
  *          the user will still cutsody their tokens on the source.
- 8
+ *  8
  *          In scenario 2, the XStaker will take cutsody of the user's tokens, but
  *          the XStakeController will not recognize the user as staked.
  *
@@ -67,7 +67,7 @@ contract XStaker is XApp {
         require(token.transferFrom(msg.sender, address(this), amount), "XStaker: transfer failed");
 
         uint256 fee = xcall({
-            destChainId: omni.omniChainId(),
+            destChainId: omniChainId(),
             conf: confLevel,
             to: controller,
             data: abi.encodeCall(XStakeController.recordStake, (msg.sender, amount)),
@@ -83,7 +83,7 @@ contract XStaker is XApp {
      */
     function stakeFee(uint256 amount) public view returns (uint256) {
         return feeFor({
-            destChainId: omni.omniChainId(),
+            destChainId: omniChainId(),
             data: abi.encodeCall(XStakeController.recordStake, (msg.sender, amount)),
             gasLimit: GasLimits.RecordStake
         });
@@ -95,7 +95,7 @@ contract XStaker is XApp {
      */
     function withdraw(address to, uint256 amount) external xrecv {
         require(isXCall(), "XStaker: only xcall");
-        require(xmsg.sourceChainId == omni.omniChainId(), "XStaker: only omni");
+        require(xmsg.sourceChainId == omniChainId(), "XStaker: only omni");
         require(xmsg.sender == controller, "XStaker: only controller");
         require(token.transfer(to, amount), "XStaker: transfer failed");
     }
