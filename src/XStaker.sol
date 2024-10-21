@@ -33,9 +33,9 @@ import {XStakeController} from "./XStakeController.sol";
  *          2. The xcall is included in the canonical source chain, but not delivered.
  *
  *          In scenario 1, our XStakeController will view this user as staked, but
- *          the user will still cutsody their tokens on the source.
+ *          the user will still custody their tokens on the source.
  *  8
- *          In scenario 2, the XStaker will take cutsody of the user's tokens, but
+ *          In scenario 2, the XStaker will take custody of the user's tokens, but
  *          the XStakeController will not recognize the user as staked.
  *
  *      We can choose to reduce protocol risk, by requiring ConfLevel.Finalized for deposits

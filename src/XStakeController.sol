@@ -77,7 +77,7 @@ contract XStakeController is XApp, Ownable {
     }
 
     /**
-     * @notice Admin function to register an XSaker deployment.
+     * @notice Admin function to register an XStaker deployment.
      *         Deployments must be registered before they can be used.
      * @param chainId Chain ID of the XStaker deployment.
      * @param addr    Deployment address.
